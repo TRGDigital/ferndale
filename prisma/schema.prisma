@@ -1,0 +1,186 @@
+// Crossways Care Home — Prisma schema (Prisma 7).
+//
+// PROVENANCE: generated from BUILD-RUNBOOK.md Step 2 + CLAUDE.md "Data models",
+// pending the real /docs/schema-additions.prisma bundle. Field shapes are my
+// inference from how the models are USED across the runbook (blog migration,
+// blog pages, page meta, redirects, leads). Reconcile with the bundle if it lands.
+//
+// Connection URLs live in prisma.config.ts (Prisma 7):
+//   DATABASE_URL = Supabase POOLED (6543) for the app
+//   DIRECT_URL   = Supabase DIRECT  (5432) for migrations only  (hard rule #3)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── The four reusable models ────────────────────────────────────────────────
+
+/// Blog post — migrated from WordPress or authored in the admin console.
+/// Served at its original /blog/<slug>/ URL.
+model BlogPost {
+  id              String      @id @default(cuid())
+  slug            String      @unique // original WP slug; preserved in the public URL
+  title           String
+  excerpt         String?
+  content         String // rendered HTML (incl. Elementor output)
+  coverImageUrl   String? // Supabase Storage URL — never the WP host (hard rule #6)
+  coverImageAlt   String?
+  status          PostStatus  @default(DRAFT)
+  publishedAt     DateTime?
+  faqs            Json? // [{ question, answer }] -> faqPageSchema when present
+  seoTitle        String?
+  metaDescription String?
+  canonicalUrl    String?
+  tags            String[]    @default([])
+  wpId            Int?        @unique // original WordPress post id, for idempotent re-migration
+  authorId        String?
+  author          BlogAuthor? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([status, publishedAt])
+}
+
+/// Blog author profile (for bylines + author JSON-LD).
+model BlogAuthor {
+  id        String     @id @default(cuid())
+  slug      String     @unique
+  name      String
+  bio       String?
+  avatarUrl String?
+  email     String?
+  posts     BlogPost[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+/// Editable bits of a marketing page: meta, FAQs and footer fields.
+/// Page bodies are coded; this holds the DB-overridable content. pageMetadata()
+/// reads this, falling back to code so meta never breaks.
+model SitePage {
+  id              String   @id @default(cuid())
+  path            String   @unique // e.g. "/", "/about/", "/contact-us/" (trailing slash)
+  title           String
+  metaTitle       String?
+  metaDescription String?
+  canonicalUrl    String?
+  ogImageUrl      String?
+  faqs            Json? // [{ question, answer }] -> faqPageSchema
+  footer          Json? // footer fields (NAP, accreditations, CQC link, Ferndale cross-link)
+  published       Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+/// Managed alt text keyed by image src — surfaced via <AltMapProvider>/<SiteImage>.
+model SiteImageAlt {
+  id        String   @id @default(cuid())
+  src       String   @unique // Supabase Storage path/URL
+  alt       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ── Admin access ────────────────────────────────────────────────────────────
+
+/// Additional admin logins managed from the console. Env ADMIN_EMAILS are
+/// always treated as MASTER; these DB rows let a master add client logins.
+model AdminUser {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  role           AdminRole @default(CLIENT)
+  supabaseUserId String?
+  createdAt      DateTime  @default(now())
+}
+
+enum AdminRole {
+  MASTER
+  CLIENT
+}
+
+// ── Careers ─────────────────────────────────────────────────────────────────
+
+/// A job vacancy, managed in the console and shown on the careers page when
+/// published. Read layer cached under the `jobs` tag.
+model JobPosting {
+  id          String    @id @default(cuid())
+  title       String
+  location    String? // e.g. "Lindfield, West Sussex"
+  type        String? // e.g. "Full-time", "Part-time", "Bank"
+  hours       String? // e.g. "Days, 36 hrs/week"
+  salary      String? // free text, e.g. "£12.50 per hour"
+  summary     String? // short one-line teaser
+  description String // full description (plain text / simple HTML)
+  published   Boolean   @default(false)
+  closingDate DateTime?
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([published, sortOrder])
+}
+
+/// Legal / policy page content, editable in the console. The public route
+/// renders the DB row if present, else the code default in lib/content/legal.ts
+/// (so the page never breaks). Cached under `legal` + `legal:<slug>`.
+model LegalPage {
+  id        String   @id @default(cuid())
+  slug      String   @unique // "privacy-policy", "cookie-policy", "terms-and-conditions"
+  title     String
+  content   String // HTML body
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+// ── Site plumbing ───────────────────────────────────────────────────────────
+
+/// 301 redirect map served by middleware.ts. Source keeps its trailing slash.
+model Redirect {
+  id          String   @id @default(cuid())
+  source      String   @unique // old path, e.g. "/news/.../"
+  destination String // new path, e.g. "/blog/.../"
+  statusCode  Int      @default(301)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+/// Lead-capture submissions from forms + the exit/scroll popup.
+model Lead {
+  id        String     @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  message   String?
+  intent    LeadIntent @default(BOOK_VISIT)
+  source    String? // page path the lead came from
+  status    LeadStatus @default(NEW)
+  meta      Json? // utm params, user agent, etc.
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([status, createdAt])
+}
+
+// ── Enums ───────────────────────────────────────────────────────────────────
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum LeadIntent {
+  BOOK_VISIT
+  BROCHURE
+  CAREERS
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  CLOSED
+}

@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+/* Ferndale palette — calm sage green led, warm cream + terracotta accent.
+   brand-500 is the green accent (icons); 600/700 are deeper for buttons +
+   heading text so white text meets WCAG AA contrast. */
+@theme {
+  --color-cream: #fbf8f3;
+  --color-sand: #eef1ee;
+  --color-ink: #20262b;
+  --color-muted: #5f6b62;
+
+  --color-brand-50: #eef7f1;
+  --color-brand-100: #d6ecdd;
+  --color-brand-200: #aed9bd;
+  --color-brand-500: #4f9d6b;
+  --color-brand-600: #347a4d;
+  --color-brand-700: #265a39;
+
+  --color-terracotta-500: #c97a57;
+  --color-terracotta-600: #a3552c;
+
+  --font-sans: var(--font-geist-sans);
+  --font-serif: var(--font-fraunces);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Headings default to the warm serif. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+/* Accessibility: a clear, consistent keyboard focus indicator. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-brand-600);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* High-contrast mode — darkens text/brand colours and whitens backgrounds. */
+html.hc {
+  --color-cream: #ffffff;
+  --color-sand: #ffffff;
+  --color-ink: #0a0e12;
+  --color-muted: #2f3941;
+  --color-brand-50: #e3f1e8;
+  --color-brand-100: #bcdcc6;
+  --color-brand-600: #1f5e38;
+  --color-brand-700: #154027;
+  --color-terracotta-600: #8a4421;
+}
+html.hc a:not([class*="rounded-full"]) {
+  text-decoration: underline;
+}
+
+/* Readable-font mode — highly legible font + roomier spacing. */
+html.readable,
+html.readable body,
+html.readable h1,
+html.readable h2,
+html.readable h3 {
+  font-family: var(--font-atkinson), Verdana, Tahoma, sans-serif;
+}
+html.readable {
+  letter-spacing: 0.01em;
+  line-height: 1.7;
+}
