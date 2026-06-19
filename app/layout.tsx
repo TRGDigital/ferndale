@@ -8,6 +8,7 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import { AltMapProvider } from "@/components/AltMapProvider";
+import { Analytics } from "@/components/site/Analytics";
 import { JsonLd } from "@/components/JsonLd";
 import { getImageAltMap } from "@/lib/data/image-alts";
 import {
@@ -80,17 +81,8 @@ export default async function RootLayout({
         />
         <AltMapProvider map={altMap}>{children}</AltMapProvider>
 
-        {/* Google Analytics (GA4) */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-TZGMHX8WQD"
-          strategy="afterInteractive"
-        />
-        <Script id="ga4-init" strategy="afterInteractive">
-          {`window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'G-TZGMHX8WQD');`}
-        </Script>
+        {/* Google Analytics (GA4) — only loads after cookie consent is accepted */}
+        <Analytics gaId="G-TZGMHX8WQD" />
 
         {/* CareBeds overlay (TRG Digital). Loads after the page is interactive,
             equivalent to a deferred script just before </body>. */}
