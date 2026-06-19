@@ -16,8 +16,7 @@ export const siteConfig = {
   officeHours: "Monday to Friday, 9am to 5pm",
   manager: "Ishwurduth Mannick",
   beds: 28,
-  // TODO: confirm Ferndale's CQC location ID (left blank -> badge links to CQC search).
-  cqcLocationId: process.env.CQC_LOCATION_ID ?? "",
+  cqcLocationId: process.env.CQC_LOCATION_ID ?? "1-108317835", // Ferndale Nursing Home, Crawley
   address: {
     streetAddress: "124 Malthouse Road",
     addressLocality: "Crawley",
