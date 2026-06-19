@@ -6,7 +6,7 @@
 
 import type { ImgHTMLAttributes } from "react";
 import { useAltMap } from "@/components/AltMapProvider";
-import { SHOW_IMAGE_PLACEHOLDERS } from "@/lib/flags";
+import { SHOW_IMAGE_PLACEHOLDERS, isPlaceholderImage } from "@/lib/flags";
 
 type ManagedImgProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "alt"> & {
   src: string;
@@ -18,7 +18,7 @@ export function ManagedImg({ src, alt, fallbackAlt, ...rest }: ManagedImgProps) 
   const map = useAltMap();
   const resolved = alt ?? map[src] ?? fallbackAlt ?? "";
 
-  if (SHOW_IMAGE_PLACEHOLDERS) {
+  if (SHOW_IMAGE_PLACEHOLDERS || isPlaceholderImage(src)) {
     const { className } = rest as { className?: string };
     return (
       <span

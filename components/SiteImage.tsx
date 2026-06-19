@@ -11,7 +11,7 @@
 
 import Image, { type ImageProps } from "next/image";
 import { useAltMap } from "@/components/AltMapProvider";
-import { SHOW_IMAGE_PLACEHOLDERS } from "@/lib/flags";
+import { SHOW_IMAGE_PLACEHOLDERS, isPlaceholderImage } from "@/lib/flags";
 
 type SiteImageProps = Omit<ImageProps, "alt"> & {
   alt?: string;
@@ -23,7 +23,7 @@ export function SiteImage({ src, alt, fallbackAlt, ...rest }: SiteImageProps) {
   const key = typeof src === "string" ? src : "";
   const resolvedAlt = alt ?? map[key] ?? fallbackAlt ?? "";
 
-  if (SHOW_IMAGE_PLACEHOLDERS) {
+  if (SHOW_IMAGE_PLACEHOLDERS || isPlaceholderImage(key)) {
     const { fill, className } = rest as { fill?: boolean; className?: string };
     return (
       <span

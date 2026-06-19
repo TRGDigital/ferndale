@@ -1,6 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { SHOW_IMAGE_PLACEHOLDERS } from "@/lib/flags";
+import { SHOW_IMAGE_PLACEHOLDERS, isPlaceholderImage } from "@/lib/flags";
+
+const LOGO_SRC = "/images/crossways-logo.png";
+const LOGO_MISSING = SHOW_IMAGE_PLACEHOLDERS || isPlaceholderImage(LOGO_SRC);
 import { siteConfig } from "@/lib/site-config";
 import { primaryNav } from "@/lib/nav";
 import { Container } from "@/components/site/ui";
@@ -15,7 +18,7 @@ export function Footer() {
     <footer className="mt-auto border-t border-brand-100 bg-sand/60">
       <Container className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          {SHOW_IMAGE_PLACEHOLDERS ? (
+          {LOGO_MISSING ? (
             <span className="inline-flex items-center gap-2">
               <span className="font-serif text-lg font-semibold text-brand-700">
                 Ferndale Nursing Home
@@ -26,7 +29,7 @@ export function Footer() {
             </span>
           ) : (
             <Image
-              src="/images/crossways-logo.png"
+              src={LOGO_SRC}
               alt="Ferndale Nursing Home"
               width={200}
               height={46}

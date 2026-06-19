@@ -1,6 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { SHOW_IMAGE_PLACEHOLDERS } from "@/lib/flags";
+import { SHOW_IMAGE_PLACEHOLDERS, isPlaceholderImage } from "@/lib/flags";
+
+const LOGO_SRC = "/images/crossways-logo.png";
+const LOGO_MISSING = SHOW_IMAGE_PLACEHOLDERS || isPlaceholderImage(LOGO_SRC);
 import { primaryNav } from "@/lib/nav";
 import { siteConfig } from "@/lib/site-config";
 import { Container, ButtonLink } from "@/components/site/ui";
@@ -13,7 +16,7 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-brand-100 bg-cream/90 backdrop-blur">
       <Container className="flex items-center justify-between py-4">
         <Link href="/" aria-label="Ferndale Nursing Home, home">
-          {SHOW_IMAGE_PLACEHOLDERS ? (
+          {LOGO_MISSING ? (
             <span className="flex items-center gap-2">
               <span className="font-serif text-lg font-semibold text-brand-700 sm:text-xl">
                 Ferndale Nursing Home
@@ -24,7 +27,7 @@ export function Header() {
             </span>
           ) : (
             <Image
-              src="/images/crossways-logo.png"
+              src={LOGO_SRC}
               alt="Ferndale Nursing Home"
               width={175}
               height={40}
