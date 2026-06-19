@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { SHOW_IMAGE_PLACEHOLDERS } from "@/lib/flags";
 import { siteConfig } from "@/lib/site-config";
 import { primaryNav } from "@/lib/nav";
 import { Container } from "@/components/site/ui";
@@ -14,13 +15,24 @@ export function Footer() {
     <footer className="mt-auto border-t border-brand-100 bg-sand/60">
       <Container className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <Image
-            src="/images/crossways-logo.png"
-            alt="Ferndale Nursing Home"
-            width={200}
-            height={46}
-            className="h-11 w-auto"
-          />
+          {SHOW_IMAGE_PLACEHOLDERS ? (
+            <span className="inline-flex items-center gap-2">
+              <span className="font-serif text-lg font-semibold text-brand-700">
+                Ferndale Nursing Home
+              </span>
+              <span className="rounded border border-dashed border-brand-300 px-1.5 py-0.5 text-[0.55rem] uppercase tracking-wide text-muted">
+                logo to add
+              </span>
+            </span>
+          ) : (
+            <Image
+              src="/images/crossways-logo.png"
+              alt="Ferndale Nursing Home"
+              width={200}
+              height={46}
+              className="h-11 w-auto"
+            />
+          )}
           <address className="mt-3 text-sm not-italic leading-relaxed text-muted">
             {address.streetAddress}
             <br />

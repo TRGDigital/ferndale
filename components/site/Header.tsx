@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { SHOW_IMAGE_PLACEHOLDERS } from "@/lib/flags";
 import { primaryNav } from "@/lib/nav";
 import { siteConfig } from "@/lib/site-config";
 import { Container, ButtonLink } from "@/components/site/ui";
@@ -12,14 +13,25 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-brand-100 bg-cream/90 backdrop-blur">
       <Container className="flex items-center justify-between py-4">
         <Link href="/" aria-label="Ferndale Nursing Home, home">
-          <Image
-            src="/images/crossways-logo.png"
-            alt="Ferndale Nursing Home"
-            width={175}
-            height={40}
-            priority
-            className="h-9 w-auto sm:h-10"
-          />
+          {SHOW_IMAGE_PLACEHOLDERS ? (
+            <span className="flex items-center gap-2">
+              <span className="font-serif text-lg font-semibold text-brand-700 sm:text-xl">
+                Ferndale Nursing Home
+              </span>
+              <span className="rounded border border-dashed border-brand-300 px-1.5 py-0.5 text-[0.55rem] uppercase tracking-wide text-muted">
+                logo to add
+              </span>
+            </span>
+          ) : (
+            <Image
+              src="/images/crossways-logo.png"
+              alt="Ferndale Nursing Home"
+              width={175}
+              height={40}
+              priority
+              className="h-9 w-auto sm:h-10"
+            />
+          )}
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex" aria-label="Primary">
