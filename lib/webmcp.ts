@@ -26,32 +26,50 @@ export interface AgentToolDef {
 }
 
 interface ModelContextLike {
-  registerTool: (tool: object, options?: { signal?: AbortSignal }) => void;
+  registerTool?: (tool: object) => void;
+  unregisterTool?: (name: string) => void;
+}
+
+/** Current spec exposes navigator.modelContext; older drafts used
+ *  document.modelContext. Support both so we register wherever it lives. */
+function getModelContext(): ModelContextLike | null {
+  if (typeof navigator !== "undefined") {
+    const mc = (navigator as unknown as { modelContext?: ModelContextLike })
+      .modelContext;
+    if (mc?.registerTool) return mc;
+  }
+  if (typeof document !== "undefined") {
+    const mc = (document as unknown as { modelContext?: ModelContextLike })
+      .modelContext;
+    if (mc?.registerTool) return mc;
+  }
+  return null;
 }
 
 export function isWebMcpAvailable(): boolean {
-  return (
-    typeof document !== "undefined" &&
-    "modelContext" in document &&
-    !!(document as unknown as { modelContext?: ModelContextLike }).modelContext
-  );
+  return !!getModelContext();
 }
 
 /** Register one tool. Returns an always-safe unregister function. No-ops cleanly
- *  when WebMCP is unavailable or registration throws. */
+ *  when WebMCP is unavailable or registration throws. `execute` must resolve to
+ *  an object (WebMCP requirement). */
 export function registerAgentTool(def: AgentToolDef): () => void {
-  if (!isWebMcpAvailable()) return () => {};
-  const mc = (document as unknown as { modelContext: ModelContextLike })
-    .modelContext;
-  const controller = new AbortController();
+  const mc = getModelContext();
+  if (!mc?.registerTool) return () => {};
   try {
-    mc.registerTool({ ...def }, { signal: controller.signal });
+    mc.registerTool({
+      name: def.name,
+      description: def.description,
+      inputSchema: def.inputSchema,
+      annotations: def.annotations,
+      execute: def.execute,
+    });
   } catch {
     return () => {};
   }
   return () => {
     try {
-      controller.abort();
+      mc.unregisterTool?.(def.name);
     } catch {
       /* already gone */
     }

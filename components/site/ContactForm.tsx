@@ -25,7 +25,7 @@ export function ContactForm() {
       e.currentTarget.reset();
     } catch {
       setStatus("error");
-      setMessage("Sorry, something went wrong. Please call us on 01444 416 841.");
+      setMessage("Sorry, something went wrong. Please call us on 01293 520368.");
     }
   }
 
@@ -38,7 +38,15 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+    <form
+      onSubmit={onSubmit}
+      className="flex flex-col gap-4"
+      {...({
+        "webmcp-tool": "submit_enquiry",
+        "webmcp-description":
+          "Send an enquiry to book a visit or request a brochure / more information",
+      } as Record<string, string>)}
+    >
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm">
           First name

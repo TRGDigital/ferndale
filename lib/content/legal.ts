@@ -132,7 +132,7 @@ export const legalDefaults: Record<LegalSlug, LegalDefault> = {
 <p>These terms are governed by the law of England and Wales, and any disputes will be subject to the exclusive jurisdiction of the courts of England and Wales.</p>
 
 <h2>Contact</h2>
-<p>If you have any questions about these terms, please contact us at <a href="mailto:${EMAIL}">${EMAIL}</a> or call 01444 416 841.</p>
+<p>If you have any questions about these terms, please contact us at <a href="mailto:${EMAIL}">${EMAIL}</a> or call 01293 520368.</p>
 
 <h2>Changes to these terms</h2>
 <p>We may update these terms from time to time. The terms that apply to you are those posted on the website on the day you use it.</p>

@@ -45,11 +45,12 @@ export function AgentTools() {
         description: `List the main pages on the ${siteConfig.name} website, with their paths, so you can link the user to the right place.`,
         annotations: { readOnlyHint: true },
         inputSchema: { type: "object", properties: {} },
-        execute: () =>
-          primaryNav.map((p) => ({
+        execute: () => ({
+          pages: primaryNav.map((p) => ({
             name: p.name,
             url: `${siteConfig.url}${p.path}`,
           })),
+        }),
       }),
     );
 

@@ -64,7 +64,15 @@ export function CareersForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+    <form
+      onSubmit={onSubmit}
+      className="flex flex-col gap-4"
+      {...({
+        "webmcp-tool": "submit_job_application",
+        "webmcp-description":
+          "Apply for a role or register interest in working here (name, email, phone, message and optional CV)",
+      } as Record<string, string>)}
+    >
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm">
           First name
