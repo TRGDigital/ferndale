@@ -2,6 +2,7 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { CookieConsent } from "@/components/site/CookieConsent";
 import { AccessibilityBar } from "@/components/site/AccessibilityBar";
+import { AgentTools } from "@/components/site/AgentTools";
 import { Container } from "@/components/site/ui";
 
 // Public site chrome (header + footer). Admin lives outside this group.
@@ -33,6 +34,7 @@ export default function SiteLayout({
       </div>
       <Footer />
       <CookieConsent />
+      <AgentTools />
     </>
   );
 }
