@@ -80,11 +80,23 @@ export default async function RootLayout({
         />
         <AltMapProvider map={altMap}>{children}</AltMapProvider>
 
+        {/* Google Analytics (GA4) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-TZGMHX8WQD"
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-TZGMHX8WQD');`}
+        </Script>
+
         {/* CareBeds overlay (TRG Digital). Loads after the page is interactive,
             equivalent to a deferred script just before </body>. */}
         <Script
           src="https://lead-generation-landing-pages.vercel.app/embed.js"
-          data-site="crossways"
+          data-site="ferndale"
           strategy="afterInteractive"
         />
       </body>
