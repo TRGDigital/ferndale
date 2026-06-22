@@ -376,8 +376,8 @@ export default async function HomePage() {
         heading="Personal, attentive care you can trust"
         body={`At Ferndale, care is personal. We are a small, family-run home registered for up to ${siteConfig.beds} residents, which means our team truly gets to know each person, their history, their preferences and their routines, and shapes their care around them.`}
         image={{
-          src: "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/home/care.jpg",
-          alt: "A Ferndale carer holding hands and chatting with a resident enjoying a cup of tea in her room",
+          src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/home/care.jpg",
+          alt: "A Ferndale nurse sitting and holding hands with an elderly resident, chatting warmly as he reads a book in the lounge",
         }}
         side="right"
         bleedY
