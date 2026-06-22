@@ -16,10 +16,17 @@ import {
   deleteLead,
   createAdminUser,
   deleteAdminUser,
+  upsertArea,
+  resetArea,
 } from "./actions";
 import { getAdminSession, envAdminEmails } from "@/lib/auth";
 import { siteImages } from "@/lib/content/site-images";
 import { legalSlugs, legalDefaults } from "@/lib/content/legal";
+import {
+  towns,
+  careTypes,
+  defaultAreaContent,
+} from "@/lib/content/local-areas";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +36,7 @@ type Tab =
   | "jobs"
   | "authors"
   | "pages"
+  | "areas"
   | "legal"
   | "images"
   | "leads"
@@ -41,6 +49,7 @@ const TABS: { key: Tab; label: string; master?: boolean }[] = [
   { key: "jobs", label: "Jobs" },
   { key: "authors", label: "Authors" },
   { key: "pages", label: "Pages" },
+  { key: "areas", label: "Areas" },
   { key: "legal", label: "Legal" },
   { key: "images", label: "Images" },
   { key: "seo", label: "SEO" },
@@ -178,6 +187,7 @@ export default async function ConsolePage({
       {tab === "jobs" ? <JobsTab editId={editId} /> : null}
       {tab === "authors" ? <AuthorsTab editId={editId} /> : null}
       {tab === "pages" ? <PagesTab editId={editId} /> : null}
+      {tab === "areas" ? <AreasTab /> : null}
       {tab === "legal" ? <LegalTab /> : null}
       {tab === "images" ? <ImagesTab /> : null}
       {tab === "seo" ? <SeoTab /> : null}
@@ -598,6 +608,101 @@ async function ImagesTab() {
         })}
       </ul>
     </Card>
+  );
+}
+
+// ── Local-area landing pages ─────────────────────────────────────────────────
+async function AreasTab() {
+  const rows = await prisma.areaPage.findMany();
+  const byPath = new Map(rows.map((r) => [r.path, r]));
+  const total = towns.length * careTypes.length;
+
+  return (
+    <div className="flex flex-col gap-6">
+      <p className="text-sm text-neutral-500">
+        Local-area landing pages ({total}). Edit the heading, intro and
+        &ldquo;more about&rdquo; text for each town &amp; care type. Saved values
+        override the default wording; intro and body are HTML. The rest of each
+        page is templated.
+      </p>
+      {towns.map((town) => (
+        <Card key={town.slug}>
+          <h2 className="mb-3 font-medium">{town.name}</h2>
+          <div className="space-y-4">
+            {careTypes.map((care) => {
+              const path = `/${town.slug}/${care.slug}/`;
+              const row = byPath.get(path);
+              const def = defaultAreaContent(town, care);
+              return (
+                <form
+                  key={path}
+                  action={upsertArea}
+                  className="space-y-2 rounded-lg border border-neutral-200 p-3"
+                >
+                  <input type="hidden" name="path" value={path} />
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium">
+                      {care.name}{" "}
+                      <a
+                        href={path}
+                        target="_blank"
+                        rel="noopener"
+                        className="font-mono text-xs text-neutral-400 underline"
+                      >
+                        {path}
+                      </a>
+                    </span>
+                    <span
+                      className={`rounded px-1.5 py-0.5 text-xs ${
+                        row
+                          ? "bg-green-100 text-green-700"
+                          : "bg-neutral-100 text-neutral-500"
+                      }`}
+                    >
+                      {row ? "Saved" : "Default"}
+                    </span>
+                  </div>
+                  <Field
+                    label="Heading"
+                    name="heading"
+                    defaultValue={row?.heading ?? def.heading}
+                  />
+                  <Area
+                    label="Intro — top of page (HTML)"
+                    name="intro"
+                    rows={3}
+                    defaultValue={row?.intro ?? def.intro}
+                  />
+                  <Area
+                    label="More about — extra paragraphs (HTML)"
+                    name="body"
+                    rows={5}
+                    defaultValue={row?.body ?? def.body}
+                  />
+                  <div className="flex items-center gap-3 pt-1">
+                    <button
+                      type="submit"
+                      className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
+                    >
+                      Save
+                    </button>
+                    {row ? (
+                      <button
+                        type="submit"
+                        formAction={resetArea}
+                        className="text-sm text-red-600 underline"
+                      >
+                        Reset
+                      </button>
+                    ) : null}
+                  </div>
+                </form>
+              );
+            })}
+          </div>
+        </Card>
+      ))}
+    </div>
   );
 }
 

@@ -339,3 +339,33 @@ export async function deleteAdminUser(fd: FormData) {
   await prisma.adminUser.delete({ where: { id } });
   redirect("/admin/?tab=users");
 }
+
+// ── local-area landing pages ─────────────────────────────────────────────────
+export async function upsertArea(fd: FormData) {
+  await requireAdmin();
+  const path = str(fd, "path");
+  if (!path) redirect("/admin/?tab=areas");
+  const heading = optStr(fd, "heading");
+  const intro = optStr(fd, "intro");
+  const body = optStr(fd, "body");
+  if (!heading && !intro && !body) {
+    await prisma.areaPage.deleteMany({ where: { path } });
+  } else {
+    await prisma.areaPage.upsert({
+      where: { path },
+      update: { heading, intro, body },
+      create: { path, heading, intro, body },
+    });
+  }
+  revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
+  redirect("/admin/?tab=areas");
+}
+
+/** Remove the override so the area page reverts to its built-in wording. */
+export async function resetArea(fd: FormData) {
+  await requireAdmin();
+  const path = str(fd, "path");
+  await prisma.areaPage.deleteMany({ where: { path } });
+  revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
+  redirect("/admin/?tab=areas");
+}
