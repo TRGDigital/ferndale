@@ -34,16 +34,28 @@ export type TeamMember = {
   photo: string;
 };
 
-const SILHOUETTE = "/images/team/silhouette.svg";
 const TEAM =
-  "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/team";
+  "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/team";
 
 export const careTeam: TeamMember[] = [
   {
-    name: "Ishwurduth Mannick",
-    role: "Registered Manager (RMN)",
-    bio: "Our registered manager is a Registered Mental Health Nurse with over 40 years of experience in care. He leads the Ferndale team with warmth and a deep commitment to person-centred nursing care.",
-    photo: SILHOUETTE,
+    name: "Ramesh Mannick",
+    role: "Director / Registered Manager",
+    photo: `${TEAM}/ramesh-mannick.jpg`,
   },
-  // TODO: add the rest of the Ferndale team (names, roles, bios, photos).
-]
+  {
+    name: "Bincy Varghese",
+    role: "Staff Nurse",
+    photo: `${TEAM}/bincy-varghese.jpg`,
+  },
+  {
+    name: "Bindu Paul",
+    role: "Staff Nurse",
+    photo: `${TEAM}/bindu-paul.jpg`,
+  },
+  {
+    name: "Deven Ramkhelawon",
+    role: "Staff Nurse",
+    photo: `${TEAM}/deven-ramkhelawon.jpg`,
+  },
+];

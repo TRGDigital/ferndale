@@ -149,8 +149,8 @@ export const rooms = {
 };
 
 export const diningImage = {
-  src: "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/dining/dining.jpg",
-  alt: "A resident enjoying a freshly cooked roast dinner in the dining room at Ferndale",
+  src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/dining/dining.jpg",
+  alt: "A resident enjoying a freshly prepared, nutritious meal served in the dining room at Ferndale",
 };
 
 export const dining = {
