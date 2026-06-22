@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { SHOW_IMAGE_PLACEHOLDERS, isPlaceholderImage } from "@/lib/flags";
 
-const LOGO_SRC = "/images/crossways-logo.png";
+const LOGO_SRC = "/images/ferndale-logo.png";
 const LOGO_MISSING = SHOW_IMAGE_PLACEHOLDERS || isPlaceholderImage(LOGO_SRC);
 import { siteConfig } from "@/lib/site-config";
 import { primaryNav } from "@/lib/nav";
@@ -31,9 +31,9 @@ export function Footer() {
             <Image
               src={LOGO_SRC}
               alt="Ferndale Nursing Home"
-              width={200}
-              height={46}
-              className="h-11 w-auto"
+              width={183}
+              height={100}
+              className="h-16 w-auto"
             />
           )}
           <address className="mt-3 text-sm not-italic leading-relaxed text-muted">

@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { SHOW_IMAGE_PLACEHOLDERS, isPlaceholderImage } from "@/lib/flags";
 
-const LOGO_SRC = "/images/crossways-logo.png";
+const LOGO_SRC = "/images/ferndale-logo.png";
 const LOGO_MISSING = SHOW_IMAGE_PLACEHOLDERS || isPlaceholderImage(LOGO_SRC);
 import { primaryNav } from "@/lib/nav";
 import { siteConfig } from "@/lib/site-config";
@@ -29,10 +29,10 @@ export function Header() {
             <Image
               src={LOGO_SRC}
               alt="Ferndale Nursing Home"
-              width={175}
-              height={40}
+              width={183}
+              height={100}
               priority
-              className="h-9 w-auto sm:h-10"
+              className="h-12 w-auto sm:h-14"
             />
           )}
         </Link>
