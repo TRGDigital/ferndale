@@ -70,7 +70,7 @@ Cache tags: `blog`, `blog:<slug>`, `site-pages`, `page:<path>`, `image-alts`, `f
 - Address: 124 Malthouse Road, Crawley, West Sussex, RH10 6BH
 - Phone: 01293 520368 · Email: enquiries@ferndalenursinghome.co.uk
 - 28 beds (18 single, 5 double), 65+ · 24-hour NURSING care + dementia/Alzheimer's + Parkinson's + respite
-- Manager: Ishwurduth Mannick, RMN (40+ years)
+- Manager: Ramesh Mannick, RMN (40+ years) — Director / Registered Manager
 - CQC rating: Good (confirm location id) · Accreditations: RNHA, Food Hygiene, carehome.co.uk recommended
 - Sister home: Crossways Residential Care Home, Lindfield (cross-link in footer)
 - Areas served: Crawley, Horsham, Mid Sussex, Gatwick

@@ -61,7 +61,7 @@ function readFaqs(value: unknown): Faq[] {
 const FEATURES = [
   {
     title: "Our Care Team",
-    body: "A long-standing, qualified team with years of experience, led by our registered manager Ishwurduth Mannick.",
+    body: "A long-standing, qualified team with years of experience, led by our registered manager Ramesh Mannick.",
     href: "/care-team/",
     icon: "users",
   },

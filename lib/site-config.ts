@@ -14,7 +14,7 @@ export const siteConfig = {
   email: "enquiries@ferndalenursinghome.co.uk",
   // TODO: confirm Ferndale's office hours (using a sensible default for now).
   officeHours: "Monday to Friday, 9am to 5pm",
-  manager: "Ishwurduth Mannick",
+  manager: "Ramesh Mannick",
   beds: 28,
   cqcLocationId: process.env.CQC_LOCATION_ID ?? "1-108317835", // Ferndale Nursing Home, Crawley
   address: {

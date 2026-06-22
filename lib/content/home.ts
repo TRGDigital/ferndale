@@ -9,7 +9,7 @@ export const welcome = {
   heading: "Your health is our primary concern",
   paragraphs: [
     "Ferndale Nursing Home is a care home for the elderly, housed in a beautiful detached house in the exclusive area of Southgate in Crawley. We are registered to accommodate up to 28 people aged 65 and over, including married couples and partners.",
-    "Our manager is Mr Ishwurduth Mannick, RMN, who has over 40 years of experience in care, and our registered provider is Ferndale Healthcare Limited.",
+    "Our manager is Mr Ramesh Mannick, RMN, who has over 40 years of experience in care, and our registered provider is Ferndale Healthcare Limited.",
     "We have 18 single and 5 double bedrooms, most with en-suite facilities, and a TV and telephone are available in all rooms. A passenger lift serves all three floors.",
     "Our rooms are all individually decorated, and residents are encouraged to bring their own personal possessions to create a “home from home” feel.",
   ],
