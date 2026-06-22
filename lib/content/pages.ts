@@ -124,7 +124,7 @@ export const regularVisits = [
 
 // Accreditation badges shown under the "Your health is our primary concern"
 // section (matching the live site), rehosted into Supabase Storage.
-const BADGES = "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/badges";
+const BADGES = "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/badges";
 export const welcomeImages = [
   { src: `${BADGES}/cqc-good.png`, alt: "CQC rated Good" },
   { src: `${BADGES}/food-hygiene.png`, alt: "Food Hygiene Rating" },
@@ -170,7 +170,7 @@ export const gardenImage = {
 
 export const garden = {
   heading: "A beautiful, secure garden to enjoy",
-  body: "Set in a beautiful detached house in Lindfield, Ferndale has a lovely, secure garden with seating and a summer house. We actively encourage residents to enjoy the outdoors in the warmer months, a calm, safe place to relax with family.",
+  body: "Set in Crawley, West Sussex, Ferndale has a lovely, secure garden with seating and a summer house. We actively encourage residents to enjoy the outdoors in the warmer months, a calm, safe place to relax with family.",
 };
 
 export const accreditations = [
@@ -191,12 +191,12 @@ export const accreditationBadges = [
 
 export const localAreaImage = {
   src: "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/local/lindfield.jpg",
-  alt: "The village pond at Lindfield, West Sussex, with period houses and summer flowers",
+  alt: "Crawley, West Sussex, close to Gatwick and well connected across Mid Sussex",
 };
 
 export const localArea = {
-  heading: "Beautifully located in Lindfield",
-  body: "Ferndale sits in the exclusive village of Lindfield, close to Haywards Heath and well connected across Mid Sussex, convenient for families visiting from across the area.",
+  heading: "Well located in Crawley",
+  body: "Ferndale sits in Crawley, West Sussex, close to Gatwick and well connected across Mid Sussex, convenient for families visiting from across the area.",
 };
 
 export const residentReview = {

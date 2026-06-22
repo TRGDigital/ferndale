@@ -42,7 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: siteConfig.description,
   });
   // Home uses an absolute title (no "| Ferndale" suffix from the template).
-  meta.title = { absolute: `${siteConfig.name} | Care home in Lindfield, West Sussex` };
+  meta.title = { absolute: `${siteConfig.name} | Nursing home in Crawley, West Sussex` };
   return meta;
 }
 
@@ -61,7 +61,7 @@ function readFaqs(value: unknown): Faq[] {
 const FEATURES = [
   {
     title: "Our Care Team",
-    body: "A long-standing, qualified team with years of experience, led by our manager Kelvin.",
+    body: "A long-standing, qualified team with years of experience, led by our registered manager Ishwurduth Mannick.",
     href: "/care-team/",
     icon: "users",
   },
@@ -118,10 +118,10 @@ export default async function HomePage() {
               Care that feels like family
             </h1>
             <p className="mt-5 text-lg text-ink/80">
-              Ferndale is a warm, family-run care home for the elderly in the
-              beautiful village of Lindfield, West Sussex, providing
-              high-quality residential and respite care for people aged 65 and
-              over.
+              Ferndale is a warm, family-run nursing home for the elderly in
+              Crawley, West Sussex, providing high-quality 24-hour nursing care,
+              including dementia, Alzheimer&rsquo;s and Parkinson&rsquo;s care
+              and respite, for people aged 65 and over.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <ButtonLink href="/contact-us/">Book a visit</ButtonLink>
@@ -384,11 +384,11 @@ export default async function HomePage() {
       >
         <div className="mt-4 space-y-4 leading-relaxed text-ink/80">
           <p>
-            We provide 24-hour residential and respite care for people aged 65
-            and over, including married couples and partners. Whether someone
-            needs a little support to stay independent or more hands-on help
-            with daily living, our qualified carers are always close by, day and
-            night.
+            We provide 24-hour nursing care for people aged 65 and over,
+            including dementia, Alzheimer&rsquo;s and Parkinson&rsquo;s care and
+            respite, and we welcome married couples and partners. Whether someone
+            needs a little support or more complex nursing, our registered nurses
+            and carers are always close by, day and night.
           </p>
           <p>
             Everything we do is guided by dignity, kindness and respect. From
@@ -471,8 +471,8 @@ export default async function HomePage() {
             <p className="mt-4 leading-relaxed text-ink/80">
               Life at Ferndale is about creating a true home. Each day is shaped
               around the individual, from familiar routines and favourite
-              activities to meaningful social moments, in a beautiful detached
-              house close to Haywards Heath.
+              activities to meaningful social moments, in our welcoming nursing
+              home in Crawley, West Sussex.
             </p>
             <p className="mt-4 leading-relaxed text-ink/80">
               We are registered to care for up to {siteConfig.beds} residents,
@@ -485,7 +485,7 @@ export default async function HomePage() {
             <ul className="mt-4 space-y-2.5 text-sm text-ink/80">
               {[
                 `Up to ${siteConfig.beds} residents, small and personal`,
-                "Residential & respite care for ages 65+",
+                "24-hour nursing care for ages 65+",
                 "Couples and partners welcome",
                 "Individually decorated, “home from home” rooms",
                 "Lift & chair-lift access",
@@ -686,7 +686,7 @@ export default async function HomePage() {
       {/* Full-width location map with a Contact us overlay */}
       <section className="relative" aria-label="Contact us and map">
         <iframe
-          title="Map showing Ferndale Nursing Home, Lindfield"
+          title="Map showing Ferndale Nursing Home, Crawley"
           src={mapSrc}
           loading="lazy"
           className="block h-[520px] w-full border-0"
