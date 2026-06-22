@@ -77,6 +77,18 @@ model SitePage {
   updatedAt       DateTime @updatedAt
 }
 
+/// Local-area landing pages (/{town}/{care}/). Code provides a default; this
+/// holds the per-page override edited in the admin "Areas" tab.
+model AreaPage {
+  id        String   @id @default(cuid())
+  path      String   @unique // "/horsham/nursing-care/"
+  heading   String?
+  intro     String? // HTML for the top written content (hero)
+  body      String? // HTML for the extra paragraphs below "What we offer"
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
 /// Managed alt text keyed by image src — surfaced via <AltMapProvider>/<SiteImage>.
 model SiteImageAlt {
   id        String   @id @default(cuid())

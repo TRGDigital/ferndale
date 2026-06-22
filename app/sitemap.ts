@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getPublishedPosts } from "@/lib/data/blog";
 import { getPublishedSitePages } from "@/lib/data/site-pages";
+import { AREA_PATHS } from "@/lib/content/local-areas";
 import { siteConfig } from "@/lib/site-config";
 
 // Static marketing routes always present (trailing slashes — hard rule #1).
@@ -29,7 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const entries = new Map<string, MetadataRoute.Sitemap[number]>();
 
-  for (const path of STATIC_PATHS) {
+  for (const path of [...STATIC_PATHS, ...AREA_PATHS]) {
     entries.set(path, { url: `${base}${path}`, lastModified: now });
   }
 
