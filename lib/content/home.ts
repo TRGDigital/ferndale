@@ -1,7 +1,7 @@
 // Home-page content adapted from the live crosswayscarehome.co.uk home page.
 
 export const heroImage = {
-  src: "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/hero/front.jpg",
+  src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/hero/front.jpg",
   alt: "Ferndale Nursing Home, a detached house in Crawley, West Sussex, with its flower garden in bloom",
 };
 
