@@ -14,7 +14,7 @@ import { Icon } from "@/components/site/Icon";
 export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-brand-100 bg-cream/90 backdrop-blur">
-      <Container className="flex items-center justify-between py-4">
+      <Container className="flex items-center justify-between py-2">
         <Link href="/" aria-label="Ferndale Nursing Home, home">
           {LOGO_MISSING ? (
             <span className="flex items-center gap-2">
@@ -32,7 +32,7 @@ export function Header() {
               width={183}
               height={100}
               priority
-              className="h-16 w-auto sm:h-20"
+              className="h-20 w-auto sm:h-24"
             />
           )}
         </Link>

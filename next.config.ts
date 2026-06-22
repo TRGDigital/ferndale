@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
+        // Ferndale's own Supabase storage.
+        protocol: "https",
+        hostname: "nuxsbykzkivbjtkhheph.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+      {
+        // Crossways bucket — placeholder images carried over from the clone.
         protocol: "https",
         hostname: "trmwjilicdxgrzbwzchf.supabase.co",
         pathname: "/storage/v1/object/public/**",

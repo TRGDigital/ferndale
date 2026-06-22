@@ -6,6 +6,7 @@ export const primaryNav = [
   { name: "About Us", path: "/about-us/" },
   { name: "Care Team", path: "/care-team/" },
   { name: "Activities", path: "/activities/" },
+  { name: "Tools", path: "/tools/" },
   { name: "Careers", path: "/careers/" },
   { name: "Blog", path: "/blog/" },
   { name: "Contact Us", path: "/contact-us/" },

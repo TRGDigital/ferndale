@@ -164,7 +164,7 @@ export const dining = {
 };
 
 export const gardenImage = {
-  src: "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/garden/garden.jpg",
+  src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/garden/garden.jpg",
   alt: "The secure, colourful garden at Ferndale in summer, with flower borders, a lawn and a summer house",
 };
 
