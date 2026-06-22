@@ -38,24 +38,26 @@ const TEAM =
   "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/team";
 
 export const careTeam: TeamMember[] = [
-  {
-    name: "Ramesh Mannick",
-    role: "Director / Registered Manager",
-    photo: `${TEAM}/ramesh-mannick.jpg`,
-  },
-  {
-    name: "Bincy Varghese",
-    role: "Staff Nurse",
-    photo: `${TEAM}/bincy-varghese.jpg`,
-  },
-  {
-    name: "Bindu Paul",
-    role: "Staff Nurse",
-    photo: `${TEAM}/bindu-paul.jpg`,
-  },
-  {
-    name: "Deven Ramkhelawon",
-    role: "Staff Nurse",
-    photo: `${TEAM}/deven-ramkhelawon.jpg`,
-  },
+  { name: "Ramesh Mannick", role: "Director / Registered Manager", photo: `${TEAM}/ramesh-mannick.jpg` },
+  { name: "Amrita Mannick", role: "Deputy Manager", photo: `${TEAM}/amrita-mannick.jpg` },
+  { name: "Minimol Sony", role: "Staff Nurse", photo: `${TEAM}/minimol-sony.jpg` },
+  { name: "Bincy Varghese", role: "Staff Nurse", photo: `${TEAM}/bincy-varghese.jpg` },
+  { name: "Bindu Paul", role: "Staff Nurse", photo: `${TEAM}/bindu-paul.jpg` },
+  { name: "Deven Ramkhelawon", role: "Staff Nurse", photo: `${TEAM}/deven-ramkhelawon.jpg` },
+  { name: "Prijin Janardhanan", role: "Senior Carer", photo: `${TEAM}/prijin-janardhanan.jpg` },
+  { name: "Swapna Pradeep", role: "Senior Carer", photo: `${TEAM}/swapna-pradeep.jpg` },
+  { name: "Binta Jammeh", role: "Senior Care Assistant", photo: `${TEAM}/binta-jammeh.jpg` },
+  { name: "Alice Ruvetsa", role: "Senior Care Assistant", photo: `${TEAM}/alice-ruvetsa.jpg` },
+  { name: "Harriet Bwenene", role: "Senior Care Assistant", photo: `${TEAM}/harriet-bwenene.jpg` },
+  { name: "Georgette Woodcock", role: "Senior Care Assistant", photo: `${TEAM}/georgette-woodcock.jpg` },
+  { name: "Bini Johnson", role: "Senior Care Assistant", photo: `${TEAM}/bini-johnson.jpg` },
+  { name: "Sheeba Jacobs", role: "Senior Care Assistant", photo: `${TEAM}/sheeba-jacobs.jpg` },
+  { name: "Jaison Peter", role: "Senior Care Assistant", photo: `${TEAM}/jaison-peter.jpg` },
+  { name: "Tini James", role: "Senior Care Assistant", photo: `${TEAM}/tini-james.jpg` },
+  { name: "Elsa Antony", role: "Care Assistant", photo: `${TEAM}/elsa-antony.jpg` },
+  { name: "Judy Murray", role: "Activities Co-Ordinator", photo: `${TEAM}/judy-murray.jpg` },
+  { name: "Aquilla Ellet", role: "Chef", photo: `${TEAM}/aquilla-ellet.jpg` },
+  { name: "Aoife Arbery", role: "Administrator", photo: `${TEAM}/aoife-arbery.jpg` },
+  { name: "Charlene Bancal", role: "Laundry Operative", photo: `${TEAM}/charlene-bancal.jpg` },
+  { name: "Louis Sophie", role: "Cleaner / Maintenance", photo: `${TEAM}/louis-sophie.jpg` },
 ];
