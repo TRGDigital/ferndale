@@ -113,7 +113,7 @@ export default async function HomePage() {
             <div className="mb-4">
               <AvailabilityBadge />
             </div>
-            <Eyebrow>Residential &amp; respite care · Lindfield</Eyebrow>
+            <Eyebrow>Nursing Care in Crawley</Eyebrow>
             <h1 className="text-4xl font-semibold leading-tight text-brand-700 sm:text-5xl">
               Care that feels like family
             </h1>
