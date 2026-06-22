@@ -18,6 +18,8 @@ import {
 import { Icon } from "@/components/site/Icon";
 import { CHIP_ACCENTS, DOT_ACCENTS, Decor } from "@/components/site/decor";
 import { ContactForm } from "@/components/site/ContactForm";
+import { AvailabilityBadge } from "@/components/site/AvailabilityBadge";
+import { tools } from "@/lib/content/tools";
 import { homeFaqs } from "@/lib/content/home-faqs";
 import { welcome, whyChooseUs, careTeam, heroImage } from "@/lib/content/home";
 import {
@@ -108,6 +110,9 @@ export default async function HomePage() {
       <Section className="relative overflow-hidden bg-brand-50 pt-20 lg:min-h-[560px]">
         <Container className="relative z-10 flex items-center">
           <div className="max-w-xl">
+            <div className="mb-4">
+              <AvailabilityBadge />
+            </div>
             <Eyebrow>Residential &amp; respite care · Lindfield</Eyebrow>
             <h1 className="text-4xl font-semibold leading-tight text-brand-700 sm:text-5xl">
               Care that feels like family
@@ -150,6 +155,54 @@ export default async function HomePage() {
             className="object-cover object-center [-webkit-mask-image:linear-gradient(to_right,transparent,#000_34%)] [mask-image:linear-gradient(to_right,transparent,#000_34%)]"
           />
         </div>
+      </Section>
+
+      {/* The care we offer (quick summary) */}
+      <Section className="py-8 sm:py-10">
+        <Container>
+          <Eyebrow>The care we offer</Eyebrow>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                icon: "activity",
+                title: "Nursing care",
+                body: "24-hour care led by qualified registered nurses, for people with ongoing medical and nursing needs.",
+              },
+              {
+                icon: "shield",
+                title: "Dementia care",
+                body: "Specialist, patient support for people living with dementia, in a safe and familiar setting.",
+              },
+              {
+                icon: "heart",
+                title: "Alzheimer's care",
+                body: "Compassionate care for people living with Alzheimer's, focused on dignity, routine and reassurance.",
+              },
+              {
+                icon: "bed",
+                title: "Respite care",
+                body: "Short stays and respite, whether for a break, recovery after hospital, or to try us out.",
+              },
+            ].map((c, i) => (
+              <div
+                key={c.title}
+                className={`${CARD} ${CARD_HOVER} flex items-start gap-4 p-5`}
+              >
+                <span
+                  className={`inline-flex shrink-0 rounded-xl p-3 ring-1 ${CHIP_ACCENTS[i % CHIP_ACCENTS.length]}`}
+                >
+                  <Icon name={c.icon} />
+                </span>
+                <div>
+                  <h2 className="font-semibold text-brand-700">{c.title}</h2>
+                  <p className="mt-0.5 text-sm leading-relaxed text-muted">
+                    {c.body}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Container>
       </Section>
 
       {/* Accreditations trust band (real badge logos) */}
@@ -239,6 +292,80 @@ export default async function HomePage() {
               </span>
             </Link>
           ))}
+        </Container>
+      </Section>
+
+      {/* Funding calculator banner */}
+      <div className="py-3 sm:py-4">
+        <Container>
+          <Link
+            href="/funding-calculator/"
+            className="group relative block overflow-hidden rounded-3xl bg-brand-600 p-8 shadow-[0_18px_44px_-20px_rgba(19,82,113,0.45)] sm:p-10"
+          >
+            <Decor tone="blue" />
+            <div className="relative z-10 flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-5">
+                <span className="hidden shrink-0 rounded-2xl bg-white/15 p-3 text-white ring-1 ring-white/25 sm:inline-flex">
+                  <Icon name="calculator" className="h-7 w-7" />
+                </span>
+                <div className="max-w-2xl">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-50/80">
+                    Paying for care
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold text-white sm:text-3xl">
+                    Worried about the cost of care?
+                  </h2>
+                  <p className="mt-2 leading-relaxed text-brand-50">
+                    Use our free care funding calculator to get a quick guide to
+                    what you might pay and the financial support you could be
+                    entitled to.
+                  </p>
+                </div>
+              </div>
+              <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-medium text-brand-700 transition-colors group-hover:bg-brand-50">
+                Try the funding calculator
+                <span className="transition-transform group-hover:translate-x-1">
+                  →
+                </span>
+              </span>
+            </div>
+          </Link>
+        </Container>
+      </div>
+
+      {/* More tools (compact strip — smaller than the funding banner) */}
+      <Section className="py-6 sm:py-8">
+        <Container>
+          <Eyebrow>More tools to help</Eyebrow>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {tools
+              .filter((t) => t.href !== "/funding-calculator/")
+              .map((t, i) => (
+                <Link
+                  key={t.href}
+                  href={t.href}
+                  className={`group ${CARD} ${CARD_HOVER} flex flex-col p-5`}
+                >
+                  <span
+                    className={`inline-flex w-fit rounded-xl p-2.5 ring-1 ${CHIP_ACCENTS[(i + 2) % CHIP_ACCENTS.length]}`}
+                  >
+                    <Icon name={t.icon} className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-3 text-sm font-semibold text-brand-700">
+                    {t.name}
+                  </h3>
+                  <p className="mt-1 flex-1 text-xs leading-relaxed text-muted">
+                    {t.description}
+                  </p>
+                  <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-terracotta-600">
+                    Open
+                    <span className="transition-transform group-hover:translate-x-1">
+                      →
+                    </span>
+                  </span>
+                </Link>
+              ))}
+          </div>
         </Container>
       </Section>
 

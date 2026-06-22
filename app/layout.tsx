@@ -84,11 +84,18 @@ export default async function RootLayout({
         {/* Google Analytics (GA4) — only loads after cookie consent is accepted */}
         <Analytics gaId="G-TZGMHX8WQD" />
 
-        {/* CareBeds overlay (TRG Digital). Loads after the page is interactive,
-            equivalent to a deferred script just before </body>. */}
+        {/* TRG Digital snippets. Load after the page is interactive, equivalent
+            to deferred scripts just before </body>. */}
+        {/* Lead-capture overlay pop */}
         <Script
-          src="https://lead-generation-landing-pages.vercel.app/embed.js"
-          data-site="ferndale"
+          src="https://www.trgdigital.co.uk/embed.js"
+          data-site="ferndale-nursing-home"
+          strategy="afterInteractive"
+        />
+        {/* Click-to-call bar */}
+        <Script
+          src="https://www.trgdigital.co.uk/callbar.js"
+          data-site="ferndale-nursing-home"
           strategy="afterInteractive"
         />
       </body>
