@@ -134,8 +134,8 @@ export const welcomeImages = [
 // ── New home-page sections (not from the old site) ──────────────────────────
 
 export const roomsImage = {
-  src: "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/rooms/room.jpg",
-  alt: "A bright, comfortable resident's room at Ferndale with oak furniture and a garden view",
+  src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/rooms/room.jpg",
+  alt: "A resident at Ferndale relaxing in her bright, personal room, looking out onto the garden",
 };
 
 export const rooms = {

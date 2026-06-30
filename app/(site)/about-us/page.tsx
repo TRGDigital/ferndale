@@ -88,8 +88,8 @@ export default function AboutPage() {
         heading="Welcome to Ferndale"
         body={`Ferndale is a care home for the elderly, housed in a beautiful detached house in the exclusive area of Lindfield, close to Haywards Heath. We are registered to accommodate up to ${siteConfig.beds} people aged 65 and over, including married couples and partners. We also offer respite care.`}
         image={{
-          src: "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/about/welcome.jpg",
-          alt: "Inside Ferndale: the lounge, dining room and hallway, with fresh flowers throughout",
+          src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/about/welcome.jpg",
+          alt: "Ferndale's detached house and mature gardens, with flowerbeds and a sunny patio seating area",
         }}
         side="right"
         bleedY
@@ -153,8 +153,8 @@ export default function AboutPage() {
         body="Everything we do is guided by a simple set of aims, to keep our residents as independent, comfortable and content as possible, treated always with respect and dignity."
         points={aboutAims}
         image={{
-          src: "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/about/aims.jpg",
-          alt: "Residents enjoying a lively chair-based activity session with the Ferndale activity leader",
+          src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/about/aims.jpg",
+          alt: "Ferndale residents chatting and laughing together in the bright, homely lounge",
         }}
         side="left"
         bleedY
