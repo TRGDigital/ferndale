@@ -80,7 +80,7 @@ const careerBenefits = [
   {
     icon: "home",
     title: "Excellent working conditions",
-    body: "A beautiful home in Lindfield with a warm, settled atmosphere and the time to give residents the care they deserve.",
+    body: "A beautiful home in Crawley with a warm, settled atmosphere and the time to give residents the care they deserve.",
   },
   {
     icon: "leaf",
@@ -93,7 +93,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata("/careers/", {
     title: "Careers",
     description:
-      "Experienced carer looking for a rewarding role? Ferndale offers excellent working conditions in a friendly, family-run home in Lindfield.",
+      "Experienced carer looking for a rewarding role? Ferndale offers excellent working conditions in a friendly, family-run home in Crawley.",
   });
 }
 

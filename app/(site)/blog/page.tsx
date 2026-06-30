@@ -16,7 +16,7 @@ const CARD_HOVER =
 export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata("/blog/", {
     title: "News & Blog",
-    description: `Life, activities and care news from ${siteConfig.name} in Lindfield, West Sussex.`,
+    description: `Life, activities and care news from ${siteConfig.name} in Crawley, West Sussex.`,
   });
 }
 

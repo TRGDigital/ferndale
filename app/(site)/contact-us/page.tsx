@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata("/contact-us/", {
     title: "Contact Us",
     description:
-      "Get in touch with Ferndale Nursing Home in Lindfield. Book a visit, request a brochure, or ask a question.",
+      "Get in touch with Ferndale Nursing Home in Crawley. Book a visit, request a brochure, or ask a question.",
   });
 }
 
@@ -139,7 +139,7 @@ export default function ContactPage() {
       {/* Full-width location map (same as the home page) */}
       <section className="relative" aria-label="Find us on the map">
         <iframe
-          title="Map showing Ferndale Nursing Home, Lindfield"
+          title="Map showing Ferndale Nursing Home, Crawley"
           src={mapSrc}
           loading="lazy"
           className="block h-[520px] w-full border-0"
@@ -150,7 +150,7 @@ export default function ContactPage() {
             <div className="pointer-events-auto w-full max-w-sm rounded-2xl bg-cream/95 p-6 shadow-xl ring-1 ring-brand-100 backdrop-blur">
               <h2 className="font-serif text-2xl text-brand-700">Find us</h2>
               <p className="mt-1 text-sm text-ink/80">
-                In the heart of Lindfield, close to Haywards Heath.
+                In Crawley, West Sussex, close to Gatwick and Horsham.
               </p>
               <ul className="mt-4 space-y-2 text-sm text-ink/80">
                 <li>

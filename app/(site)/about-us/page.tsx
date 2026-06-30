@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata("/about-us/", {
     title: "About Us",
     description:
-      "Ferndale is a warm, family-run residential care home for the elderly in Lindfield, West Sussex, registered for up to 25 residents aged 65 and over.",
+      "Ferndale is a warm, family-run nursing home for the elderly in Crawley, West Sussex, registered for up to 28 residents aged 65 and over.",
   });
 }
 
@@ -86,7 +86,7 @@ export default function AboutPage() {
         className="bg-[linear-gradient(to_bottom,var(--color-cream),var(--color-brand-50)_22%,var(--color-brand-50)_78%,var(--color-cream))]"
         eyebrow="Welcome"
         heading="Welcome to Ferndale"
-        body={`Ferndale is a care home for the elderly, housed in a beautiful detached house in the exclusive area of Lindfield, close to Haywards Heath. We are registered to accommodate up to ${siteConfig.beds} people aged 65 and over, including married couples and partners. We also offer respite care.`}
+        body={`Ferndale is a care home for the elderly, housed in a beautiful detached house in Crawley, West Sussex. We are registered to accommodate up to ${siteConfig.beds} people aged 65 and over, including married couples and partners. We also offer respite care.`}
         image={{
           src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/about/welcome.jpg",
           alt: "Ferndale's detached house and mature gardens, with flowerbeds and a sunny patio seating area",
