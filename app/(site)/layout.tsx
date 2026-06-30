@@ -5,6 +5,23 @@ import { AccessibilityBar } from "@/components/site/AccessibilityBar";
 import { AgentTools } from "@/components/site/AgentTools";
 import { Container } from "@/components/site/ui";
 import { getSetting } from "@/lib/data/settings";
+import { siteConfig } from "@/lib/site-config";
+
+// The read-aloud welcome is managed in the TRG platform admin
+// (trgdigital.co.uk/admin/websites). Read it from there, cached.
+async function fetchPlatformIntro(): Promise<string> {
+  try {
+    const res = await fetch(
+      `https://www.trgdigital.co.uk/api/accessibility-config?site=${siteConfig.platformSlug}`,
+      { next: { revalidate: 300 } },
+    );
+    if (!res.ok) return "";
+    const j = (await res.json()) as { intro?: string };
+    return typeof j.intro === "string" ? j.intro.trim() : "";
+  } catch {
+    return "";
+  }
+}
 
 // Public site chrome (header + footer). Admin lives outside this group.
 export default async function SiteLayout({
@@ -12,8 +29,13 @@ export default async function SiteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Admin-editable welcome read aloud first by the accessibility bar.
-  const listenIntro = await getSetting("listenIntro");
+  // Platform-managed welcome read aloud first by the accessibility bar, with a
+  // local DB setting as a fallback when the platform can't be reached.
+  const [platformIntro, localIntro] = await Promise.all([
+    fetchPlatformIntro(),
+    getSetting("listenIntro"),
+  ]);
+  const listenIntro = platformIntro || localIntro;
 
   return (
     <>

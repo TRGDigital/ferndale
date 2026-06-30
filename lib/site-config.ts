@@ -33,7 +33,10 @@ export const siteConfig = {
     url: "https://www.crosswayscarehome.co.uk/",
   },
   accreditations: ["RNHA", "Food Hygiene Rating", "carehome.co.uk Recommended"],
-  // Hidden welcome spoken first by the accessibility bar's "Listen to page"
+  // This site's slug in the TRG platform (trgdigital.co.uk/admin/websites),
+  // used to read platform-managed settings such as the read-aloud welcome.
+  platformSlug: "ferndale-nursing-home",
+  // Fallback welcome spoken first by the accessibility bar's "Listen to page"
   // button (never shown on screen). Edit freely; keep it warm and brief.
   listenIntro:
     "Welcome to Ferndale Nursing Home. You are listening to our website read aloud. " +
