@@ -183,7 +183,7 @@ export default async function ConsolePage({
         ))}
       </nav>
 
-      {tab === "home" ? <HomeTab /> : null}
+      {tab === "home" ? <HomeTab editId={editId} /> : null}
       {tab === "leads" ? <LeadsTab /> : null}
       {tab === "posts" ? <PostsTab editId={editId} /> : null}
       {tab === "jobs" ? <JobsTab editId={editId} /> : null}
@@ -214,10 +214,15 @@ const TRG = {
   ],
 };
 
-async function HomeTab() {
-  const team = await prisma.teamMember.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-  });
+async function HomeTab({ editId }: { editId?: string }) {
+  const [team, editing] = await Promise.all([
+    prisma.teamMember.findMany({
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    }),
+    editId
+      ? prisma.teamMember.findUnique({ where: { id: editId } })
+      : Promise.resolve(null),
+  ]);
   return (
     <div className="flex flex-col gap-6">
     <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
@@ -316,10 +321,19 @@ async function HomeTab() {
                   <span className="block truncate text-neutral-400">{m.role}</span>
                 </span>
               </span>
-              <form action={deleteTeamMember}>
-                <input type="hidden" name="id" value={m.id} />
-                <button className="shrink-0 text-red-600 underline">Remove</button>
-              </form>
+              <span className="flex shrink-0 items-center gap-3">
+                <Link
+                  href={`?tab=home&edit=${m.id}`}
+                  prefetch={false}
+                  className="underline"
+                >
+                  Edit
+                </Link>
+                <form action={deleteTeamMember}>
+                  <input type="hidden" name="id" value={m.id} />
+                  <button className="text-red-600 underline">Remove</button>
+                </form>
+              </span>
             </li>
           ))}
           {team.length === 0 ? (
@@ -329,16 +343,27 @@ async function HomeTab() {
       </Card>
 
       <Card>
-        <h2 className="mb-3 font-medium">Add team member</h2>
+        <h2 className="mb-3 font-medium">
+          {editing ? `Edit ${editing.name}` : "Add team member"}
+        </h2>
         <form action={upsertTeamMember} className="flex flex-col gap-3">
+          {editing ? (
+            <input type="hidden" name="id" value={editing.id} />
+          ) : null}
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Name" name="name" required />
-            <Field label="Role (e.g. Staff Nurse)" name="role" required />
+            <Field label="Name" name="name" defaultValue={editing?.name} required />
+            <Field
+              label="Role (e.g. Staff Nurse)"
+              name="role"
+              defaultValue={editing?.role}
+              required
+            />
           </div>
           <Area
             label="Short bio (optional)"
             name="bio"
-            rows={2}
+            rows={3}
+            defaultValue={editing?.bio ?? ""}
             hint="Shown under their name on the team page."
           />
           <div className="grid gap-3 sm:grid-cols-2">
@@ -346,13 +371,15 @@ async function HomeTab() {
               label="Sort order"
               name="sortOrder"
               type="number"
-              defaultValue="50"
+              defaultValue={editing ? String(editing.sortOrder) : "50"}
               hint="Lower numbers show first."
             />
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-neutral-600">Photo</span>
               <span className="text-xs text-neutral-400">
-                A clear, square head-and-shoulders photo works best.
+                {editing
+                  ? "Upload to replace the current photo, or leave blank to keep it."
+                  : "A clear, square head-and-shoulders photo works best."}
               </span>
               <input
                 type="file"
@@ -367,8 +394,13 @@ async function HomeTab() {
               type="submit"
               className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
             >
-              Add member
+              {editing ? "Save changes" : "Add member"}
             </button>
+            {editing ? (
+              <Link href="?tab=home" prefetch={false} className="text-sm underline">
+                Cancel
+              </Link>
+            ) : null}
           </div>
         </form>
       </Card>
