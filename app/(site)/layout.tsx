@@ -4,13 +4,17 @@ import { CookieConsent } from "@/components/site/CookieConsent";
 import { AccessibilityBar } from "@/components/site/AccessibilityBar";
 import { AgentTools } from "@/components/site/AgentTools";
 import { Container } from "@/components/site/ui";
+import { getSetting } from "@/lib/data/settings";
 
 // Public site chrome (header + footer). Admin lives outside this group.
-export default function SiteLayout({
+export default async function SiteLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Admin-editable welcome read aloud first by the accessibility bar.
+  const listenIntro = await getSetting("listenIntro");
+
   return (
     <>
       {/* Keyboard / screen-reader skip link */}
@@ -24,7 +28,7 @@ export default function SiteLayout({
       {/* Accessibility bar */}
       <div className="border-b border-brand-100 bg-brand-50/70">
         <Container className="py-1.5">
-          <AccessibilityBar />
+          <AccessibilityBar listenIntro={listenIntro} />
         </Container>
       </div>
 

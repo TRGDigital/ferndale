@@ -369,3 +369,20 @@ export async function resetArea(fd: FormData) {
   revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
   redirect("/admin/?tab=areas");
 }
+
+// ── Site settings (editable key/value) ─────────────────────────────────────
+
+/** Upsert a single editable site setting (e.g. the read-aloud welcome). */
+export async function upsertSetting(fd: FormData) {
+  await requireAdmin();
+  const key = str(fd, "key");
+  if (!key) redirect("/admin/?tab=home");
+  const value = str(fd, "value").slice(0, 4000);
+  await prisma.siteSetting.upsert({
+    where: { key },
+    update: { value },
+    create: { key, value },
+  });
+  revalidateTags(["settings"]);
+  redirect("/admin/?tab=home");
+}

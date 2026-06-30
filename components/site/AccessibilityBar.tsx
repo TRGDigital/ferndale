@@ -54,7 +54,7 @@ function toggleClass(cls: string, lsKey: string) {
   fire();
 }
 
-export function AccessibilityBar() {
+export function AccessibilityBar({ listenIntro }: { listenIntro?: string }) {
   const state = useSyncExternalStore(subscribe, snapshot, () => "base|0|0");
   const [size, hc, readable] = state.split("|");
   const [speaking, setSpeaking] = useState(false);
@@ -70,9 +70,10 @@ export function AccessibilityBar() {
     const pageText = (main?.innerText || document.body.innerText || "")
       .replace(/\s+/g, " ")
       .trim();
-    // The configured welcome paragraph is spoken first (it lives only here, never
-    // rendered on the page), then the page content itself.
-    const intro = (siteConfig.listenIntro || "").trim();
+    // The configured welcome paragraph is spoken first (admin-editable; never
+    // rendered on the page), then the page content itself. Falls back to the
+    // code default when the admin value is unset.
+    const intro = (listenIntro || siteConfig.listenIntro || "").trim();
     const text = [intro, pageText].filter(Boolean).join(" ").slice(0, 9000);
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 0.95;

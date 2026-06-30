@@ -98,6 +98,15 @@ model SiteImageAlt {
   updatedAt DateTime @updatedAt
 }
 
+/// Editable site-wide settings (key/value), managed in the admin console.
+/// Falls back to code defaults (siteConfig) when a key is absent. Cached
+/// under the `settings` tag.
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 // ── Admin access ────────────────────────────────────────────────────────────
 
 /// Additional admin logins managed from the console. Env ADMIN_EMAILS are

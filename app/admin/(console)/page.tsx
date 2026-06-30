@@ -18,8 +18,10 @@ import {
   deleteAdminUser,
   upsertArea,
   resetArea,
+  upsertSetting,
 } from "./actions";
 import { getAdminSession, envAdminEmails } from "@/lib/auth";
+import { siteConfig } from "@/lib/site-config";
 import { siteImages } from "@/lib/content/site-images";
 import { legalSlugs, legalDefaults } from "@/lib/content/legal";
 import {
@@ -212,8 +214,12 @@ const TRG = {
   ],
 };
 
-function HomeTab() {
+async function HomeTab() {
+  const listenSetting = await prisma.siteSetting.findUnique({
+    where: { key: "listenIntro" },
+  });
   return (
+    <div className="flex flex-col gap-6">
     <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
       <Card>
         <img
@@ -280,6 +286,34 @@ function HomeTab() {
         >
           Visit our website
         </a>
+      </Card>
+    </div>
+
+      <Card>
+        <h2 className="mb-1 font-medium">Read-aloud welcome (accessibility)</h2>
+        <p className="mb-3 text-sm text-neutral-500">
+          Spoken first when a visitor presses “Listen to page” in the
+          accessibility bar. It is never shown on screen. Leave blank to use the
+          built-in default.
+        </p>
+        <form action={upsertSetting} className="flex flex-col gap-3">
+          <input type="hidden" name="key" value="listenIntro" />
+          <Area
+            label="Welcome text"
+            name="value"
+            rows={6}
+            defaultValue={listenSetting?.value ?? siteConfig.listenIntro}
+            hint="A warm, brief welcome. Up to 4,000 characters."
+          />
+          <div className="flex items-center gap-3 pt-1">
+            <button
+              type="submit"
+              className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
+            >
+              Save welcome
+            </button>
+          </div>
+        </form>
       </Card>
     </div>
   );
