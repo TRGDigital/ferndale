@@ -7,6 +7,7 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { Icon } from "@/components/site/Icon";
+import { siteConfig } from "@/lib/site-config";
 
 const SCALES: Record<string, string> = { base: "100%", lg: "112.5%", xl: "125%" };
 const SIZE_OPTS = [
@@ -66,10 +67,13 @@ export function AccessibilityBar() {
       return;
     }
     const main = document.getElementById("main-content");
-    const text = (main?.innerText || document.body.innerText || "")
+    const pageText = (main?.innerText || document.body.innerText || "")
       .replace(/\s+/g, " ")
-      .trim()
-      .slice(0, 9000);
+      .trim();
+    // The configured welcome paragraph is spoken first (it lives only here, never
+    // rendered on the page), then the page content itself.
+    const intro = (siteConfig.listenIntro || "").trim();
+    const text = [intro, pageText].filter(Boolean).join(" ").slice(0, 9000);
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 0.95;
     u.onend = () => setSpeaking(false);

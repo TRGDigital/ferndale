@@ -33,6 +33,14 @@ export const siteConfig = {
     url: "https://www.crosswayscarehome.co.uk/",
   },
   accreditations: ["RNHA", "Food Hygiene Rating", "carehome.co.uk Recommended"],
+  // Hidden welcome spoken first by the accessibility bar's "Listen to page"
+  // button (never shown on screen). Edit freely; keep it warm and brief.
+  listenIntro:
+    "Welcome to Ferndale Nursing Home. You are listening to our website read aloud. " +
+    "Ferndale is a warm, family run nursing home in Crawley, West Sussex, providing 24 hour " +
+    "nursing care, including specialist dementia and Parkinson's care, plus respite, for people " +
+    "aged 65 and over. You can change the text size, turn on high contrast, or switch to a more " +
+    "readable font using the controls at the top of the page. We will now read the rest of this page.",
 } as const;
 
 export type SiteConfig = typeof siteConfig;
