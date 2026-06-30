@@ -107,6 +107,22 @@ model SiteSetting {
   updatedAt DateTime @updatedAt
 }
 
+/// A care-team member shown on the home page and /care-team. Managed in the
+/// admin console (add / edit / remove). Cached under the `team` tag.
+model TeamMember {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  bio       String?
+  photoUrl  String?
+  sortOrder Int      @default(0)
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published, sortOrder])
+}
+
 // ── Admin access ────────────────────────────────────────────────────────────
 
 /// Additional admin logins managed from the console. Env ADMIN_EMAILS are

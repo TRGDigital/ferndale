@@ -386,3 +386,64 @@ export async function upsertSetting(fd: FormData) {
   revalidateTags(["settings"]);
   redirect("/admin/?tab=home");
 }
+
+// ── Care team (add / edit / remove) ────────────────────────────────────────
+
+/** Upload a staff photo to public Storage and return its URL (or null). */
+async function uploadTeamPhoto(
+  file: File | null,
+  name: string,
+): Promise<string | null> {
+  if (!file || typeof file !== "object" || file.size === 0) return null;
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  const slug =
+    name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") ||
+    "member";
+  const ext = (file.type.split("/").pop() || "jpg").replace(/[^a-z0-9]/g, "");
+  const path = `site/team/${slug}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+  const { createClient } = await import("@supabase/supabase-js");
+  const sb = createClient(url, key);
+  const buf = Buffer.from(await file.arrayBuffer());
+  const { error } = await sb.storage
+    .from("blog")
+    .upload(path, buf, { contentType: file.type || "image/jpeg", upsert: true });
+  if (error) return null;
+  return `${url}/storage/v1/object/public/blog/${path}`;
+}
+
+/** Add a new team member or update an existing one (with optional new photo). */
+export async function upsertTeamMember(fd: FormData) {
+  await requireAdmin();
+  const id = optStr(fd, "id");
+  const name = str(fd, "name");
+  const role = str(fd, "role");
+  if (!name || !role) redirect("/admin/?tab=home");
+  const bio = optStr(fd, "bio");
+  const sortOrder = Number.parseInt(str(fd, "sortOrder"), 10);
+  const order = Number.isFinite(sortOrder) ? sortOrder : 50;
+  const photoUrl = await uploadTeamPhoto(fd.get("photo") as File | null, name);
+
+  if (id) {
+    await prisma.teamMember.update({
+      where: { id },
+      data: { name, role, bio, sortOrder: order, ...(photoUrl ? { photoUrl } : {}) },
+    });
+  } else {
+    await prisma.teamMember.create({
+      data: { name, role, bio, sortOrder: order, photoUrl },
+    });
+  }
+  revalidateTags(["team"]);
+  redirect("/admin/?tab=home");
+}
+
+/** Remove a team member. */
+export async function deleteTeamMember(fd: FormData) {
+  await requireAdmin();
+  const id = str(fd, "id");
+  if (id) await prisma.teamMember.delete({ where: { id } }).catch(() => {});
+  revalidateTags(["team"]);
+  redirect("/admin/?tab=home");
+}

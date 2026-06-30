@@ -21,7 +21,8 @@ import { ContactForm } from "@/components/site/ContactForm";
 import { AvailabilityBadge } from "@/components/site/AvailabilityBadge";
 import { tools } from "@/lib/content/tools";
 import { homeFaqs } from "@/lib/content/home-faqs";
-import { welcome, whyChooseUs, careTeam, heroImage } from "@/lib/content/home";
+import { welcome, whyChooseUs, heroImage } from "@/lib/content/home";
+import { getTeam } from "@/lib/data/team";
 import {
   residentReview,
   rooms,
@@ -94,6 +95,7 @@ const CARD_HOVER =
 export default async function HomePage() {
   const page = await getSitePage("/").catch(() => null);
   const faqs = readFaqs(page?.faqs);
+  const careTeam = await getTeam();
   const gallery = await getGalleryImages(9).catch(() => []);
 
   // Full-width OpenStreetMap embed (no API key, no cookies).

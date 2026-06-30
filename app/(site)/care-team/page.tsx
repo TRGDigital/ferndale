@@ -9,7 +9,7 @@ import {
 } from "@/components/site/ui";
 import { dotAccent, Decor } from "@/components/site/decor";
 import { ManagedImg } from "@/components/ManagedImg";
-import { careTeam } from "@/lib/content/home";
+import { getTeam } from "@/lib/data/team";
 import { careTeamPride } from "@/lib/content/pages";
 import { siteConfig } from "@/lib/site-config";
 
@@ -32,7 +32,8 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default function CareTeamPage() {
+export default async function CareTeamPage() {
+  const careTeam = await getTeam();
   return (
     <main>
       <PageHeader

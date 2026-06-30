@@ -18,6 +18,8 @@ import {
   deleteAdminUser,
   upsertArea,
   resetArea,
+  upsertTeamMember,
+  deleteTeamMember,
 } from "./actions";
 import { getAdminSession, envAdminEmails } from "@/lib/auth";
 import { siteImages } from "@/lib/content/site-images";
@@ -212,8 +214,12 @@ const TRG = {
   ],
 };
 
-function HomeTab() {
+async function HomeTab() {
+  const team = await prisma.teamMember.findMany({
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+  });
   return (
+    <div className="flex flex-col gap-6">
     <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
       <Card>
         <img
@@ -280,6 +286,91 @@ function HomeTab() {
         >
           Visit our website
         </a>
+      </Card>
+    </div>
+
+      <Card>
+        <h2 className="mb-1 font-medium">Care team ({team.length})</h2>
+        <p className="mb-3 text-sm text-neutral-500">
+          The people shown on the home page and the “Our team” page. Add new
+          starters below, or remove anyone who has left.
+        </p>
+        <ul className="divide-y divide-neutral-100 text-sm">
+          {team.map((m) => (
+            <li key={m.id} className="flex items-center justify-between gap-3 py-2">
+              <span className="flex min-w-0 items-center gap-3">
+                {m.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={m.photoUrl}
+                    alt={m.name}
+                    className="h-9 w-9 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs text-neutral-400">
+                    {m.name.slice(0, 1)}
+                  </span>
+                )}
+                <span className="min-w-0">
+                  <span className="block truncate font-medium">{m.name}</span>
+                  <span className="block truncate text-neutral-400">{m.role}</span>
+                </span>
+              </span>
+              <form action={deleteTeamMember}>
+                <input type="hidden" name="id" value={m.id} />
+                <button className="shrink-0 text-red-600 underline">Remove</button>
+              </form>
+            </li>
+          ))}
+          {team.length === 0 ? (
+            <li className="py-2 text-neutral-400">No team members yet.</li>
+          ) : null}
+        </ul>
+      </Card>
+
+      <Card>
+        <h2 className="mb-3 font-medium">Add team member</h2>
+        <form action={upsertTeamMember} className="flex flex-col gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Name" name="name" required />
+            <Field label="Role (e.g. Staff Nurse)" name="role" required />
+          </div>
+          <Area
+            label="Short bio (optional)"
+            name="bio"
+            rows={2}
+            hint="Shown under their name on the team page."
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field
+              label="Sort order"
+              name="sortOrder"
+              type="number"
+              defaultValue="50"
+              hint="Lower numbers show first."
+            />
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-neutral-600">Photo</span>
+              <span className="text-xs text-neutral-400">
+                A clear, square head-and-shoulders photo works best.
+              </span>
+              <input
+                type="file"
+                name="photo"
+                accept="image/*"
+                className="text-sm"
+              />
+            </label>
+          </div>
+          <div className="flex items-center gap-3 pt-1">
+            <button
+              type="submit"
+              className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
+            >
+              Add member
+            </button>
+          </div>
+        </form>
       </Card>
     </div>
   );
