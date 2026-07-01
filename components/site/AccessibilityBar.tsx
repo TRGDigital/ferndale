@@ -5,9 +5,13 @@
 // persist in localStorage and are applied before paint by a script in the root
 // layout (no flash).
 
-import { useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { Icon } from "@/components/site/Icon";
 import { siteConfig } from "@/lib/site-config";
+
+// Warm neural read-aloud of the site's "Read-aloud welcome", generated + cached
+// on the TRG platform. Falls back to the browser voice if it's unavailable.
+const TTS_ENDPOINT = "https://www.trgdigital.co.uk/api/accessibility-tts";
 
 const SCALES: Record<string, string> = { base: "100%", lg: "112.5%", xl: "125%" };
 const SIZE_OPTS = [
@@ -84,32 +88,37 @@ export function AccessibilityBar({ listenIntro }: { listenIntro?: string }) {
   const state = useSyncExternalStore(subscribe, snapshot, () => "base|0|0");
   const [size, hc, readable] = state.split("|");
   const [speaking, setSpeaking] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playIdRef = useRef(0);
 
-  function toggleSpeak() {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    const synth = window.speechSynthesis;
-    if (speaking) {
-      synth.cancel();
+  function stopAll() {
+    playIdRef.current++; // invalidate any in-flight request
+    if (audioRef.current) {
+      audioRef.current.pause();
+      try {
+        audioRef.current.currentTime = 0;
+      } catch {
+        /* ignore */
+      }
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    setSpeaking(false);
+    setLoading(false);
+  }
+
+  // Fallback: read the welcome with the warmest available browser voice, sentence
+  // by sentence so it paces naturally.
+  function browserSpeak(text: string) {
+    if (typeof window === "undefined" || !("speechSynthesis" in window) || !text) {
       setSpeaking(false);
       return;
     }
-    const main = document.getElementById("main-content");
-    const pageText = (main?.innerText || document.body.innerText || "")
-      .replace(/\s+/g, " ")
-      .trim();
-    // The configured welcome paragraph is spoken first (admin-editable; never
-    // rendered on the page), then the page content itself. Falls back to the
-    // code default when the admin value is unset.
-    const intro = (listenIntro || siteConfig.listenIntro || "").trim();
-    const text = [intro, pageText].filter(Boolean).join(" ").slice(0, 9000);
-
-    let launched = false;
+    const synth = window.speechSynthesis;
     const start = () => {
-      if (launched) return;
-      launched = true;
       const voice = pickWarmVoice(synth.getVoices() || []);
-      // Speak sentence by sentence so it paces naturally (small breaths between
-      // sentences) and avoids the browser's per-utterance length limits.
       const chunks =
         text.match(/[^.!?]+[.!?]*/g)?.map((s) => s.trim()).filter(Boolean) ?? [text];
       synth.cancel();
@@ -119,7 +128,6 @@ export function AccessibilityBar({ listenIntro }: { listenIntro?: string }) {
           u.voice = voice;
           u.lang = voice.lang;
         }
-        // A touch slower with natural pitch reads warmer and calmer than the default.
         u.rate = 0.95;
         u.pitch = 1;
         if (i === chunks.length - 1) u.onend = () => setSpeaking(false);
@@ -128,18 +136,60 @@ export function AccessibilityBar({ listenIntro }: { listenIntro?: string }) {
       });
       setSpeaking(true);
     };
-
-    // The voice list can load asynchronously the first time it's used.
-    if ((synth.getVoices() || []).length) {
-      start();
-    } else {
-      const onVoices = () => {
-        synth.removeEventListener("voiceschanged", onVoices);
+    if ((synth.getVoices() || []).length) start();
+    else {
+      let done = false;
+      const on = () => {
+        if (done) return;
+        done = true;
+        synth.removeEventListener("voiceschanged", on);
         start();
       };
-      synth.addEventListener("voiceschanged", onVoices);
-      // Some browsers never fire voiceschanged — start anyway shortly after.
-      setTimeout(start, 300);
+      synth.addEventListener("voiceschanged", on);
+      setTimeout(on, 300);
+    }
+  }
+
+  // "Listen": play a warm neural reading of the site's Read-aloud welcome — only
+  // the welcome, nothing else. Falls back to the browser voice if the neural
+  // service isn't configured or fails.
+  async function toggleSpeak() {
+    if (speaking || loading) {
+      stopAll();
+      return;
+    }
+    const fallbackText = (listenIntro || siteConfig.listenIntro || "").trim();
+    const myId = ++playIdRef.current;
+    setLoading(true);
+    try {
+      const r = await fetch(
+        `${TTS_ENDPOINT}?site=${encodeURIComponent(siteConfig.platformSlug)}`,
+      );
+      const data = (await r.json().catch(() => ({}))) as {
+        url?: string | null;
+        text?: string;
+      };
+      if (myId !== playIdRef.current) return; // stopped / superseded while loading
+      const text = (data.text || fallbackText).trim();
+      setLoading(false);
+      if (data.url) {
+        let audio = audioRef.current;
+        if (!audio) {
+          audio = new Audio();
+          audioRef.current = audio;
+        }
+        audio.src = data.url;
+        audio.onended = () => setSpeaking(false);
+        audio.onerror = () => browserSpeak(text);
+        setSpeaking(true);
+        audio.play().catch(() => browserSpeak(text));
+      } else if (text) {
+        browserSpeak(text);
+      }
+    } catch {
+      if (myId !== playIdRef.current) return;
+      setLoading(false);
+      if (fallbackText) browserSpeak(fallbackText);
     }
   }
 
@@ -200,9 +250,10 @@ export function AccessibilityBar({ listenIntro }: { listenIntro?: string }) {
         type="button"
         onClick={toggleSpeak}
         aria-pressed={speaking}
-        className={toggle(speaking)}
+        aria-busy={loading}
+        className={toggle(speaking || loading)}
       >
-        {speaking ? "Stop reading" : "Listen to page"}
+        {loading ? "Loading…" : speaking ? "Stop" : "Listen to page"}
       </button>
       </div>
     </div>
