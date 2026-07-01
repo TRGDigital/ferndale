@@ -98,6 +98,12 @@ export default async function RootLayout({
           data-site="ferndale-nursing-home"
           strategy="afterInteractive"
         />
+        {/* AI chat assistant */}
+        <Script
+          src="https://www.trgdigital.co.uk/chat.js"
+          data-site="ferndale-nursing-home"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
