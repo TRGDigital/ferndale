@@ -54,6 +54,32 @@ function toggleClass(cls: string, lsKey: string) {
   fire();
 }
 
+// Choose the warmest, most human-sounding voice the browser offers, preferring
+// UK-English neural/enhanced voices (Edge "Natural", Chrome "Google UK", Apple
+// enhanced). Falls back gracefully to any English voice, then the default.
+function pickWarmVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
+  if (!voices.length) return null;
+  const enGB = voices.filter((v) => /en[-_]GB/i.test(v.lang));
+  const enAny = voices.filter((v) => /^en/i.test(v.lang));
+  const find = (pool: SpeechSynthesisVoice[], re: RegExp) =>
+    pool.find((v) => re.test(v.name)) ?? null;
+  return (
+    // Edge/Windows neural "Natural" voices — warm UK female first.
+    find(enGB, /natural/i) ||
+    find(enAny, /natural/i) ||
+    // Chrome's bundled UK voices.
+    find(voices, /google uk english female/i) ||
+    find(voices, /google uk english/i) ||
+    // Apple enhanced/premium UK female voices.
+    find(enGB, /serena|kate|stephanie|martha|fiona|jamie/i) ||
+    enGB.find((v) => /female/i.test(v.name)) ||
+    enGB[0] ||
+    enAny[0] ||
+    voices[0] ||
+    null
+  );
+}
+
 export function AccessibilityBar({ listenIntro }: { listenIntro?: string }) {
   const state = useSyncExternalStore(subscribe, snapshot, () => "base|0|0");
   const [size, hc, readable] = state.split("|");
@@ -61,8 +87,9 @@ export function AccessibilityBar({ listenIntro }: { listenIntro?: string }) {
 
   function toggleSpeak() {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const synth = window.speechSynthesis;
     if (speaking) {
-      window.speechSynthesis.cancel();
+      synth.cancel();
       setSpeaking(false);
       return;
     }
@@ -75,13 +102,45 @@ export function AccessibilityBar({ listenIntro }: { listenIntro?: string }) {
     // code default when the admin value is unset.
     const intro = (listenIntro || siteConfig.listenIntro || "").trim();
     const text = [intro, pageText].filter(Boolean).join(" ").slice(0, 9000);
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.95;
-    u.onend = () => setSpeaking(false);
-    u.onerror = () => setSpeaking(false);
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
-    setSpeaking(true);
+
+    let launched = false;
+    const start = () => {
+      if (launched) return;
+      launched = true;
+      const voice = pickWarmVoice(synth.getVoices() || []);
+      // Speak sentence by sentence so it paces naturally (small breaths between
+      // sentences) and avoids the browser's per-utterance length limits.
+      const chunks =
+        text.match(/[^.!?]+[.!?]*/g)?.map((s) => s.trim()).filter(Boolean) ?? [text];
+      synth.cancel();
+      chunks.forEach((chunk, i) => {
+        const u = new SpeechSynthesisUtterance(chunk);
+        if (voice) {
+          u.voice = voice;
+          u.lang = voice.lang;
+        }
+        // A touch slower with natural pitch reads warmer and calmer than the default.
+        u.rate = 0.95;
+        u.pitch = 1;
+        if (i === chunks.length - 1) u.onend = () => setSpeaking(false);
+        u.onerror = () => setSpeaking(false);
+        synth.speak(u);
+      });
+      setSpeaking(true);
+    };
+
+    // The voice list can load asynchronously the first time it's used.
+    if ((synth.getVoices() || []).length) {
+      start();
+    } else {
+      const onVoices = () => {
+        synth.removeEventListener("voiceschanged", onVoices);
+        start();
+      };
+      synth.addEventListener("voiceschanged", onVoices);
+      // Some browsers never fire voiceschanged — start anyway shortly after.
+      setTimeout(start, 300);
+    }
   }
 
   const toggle = (active: boolean) =>
