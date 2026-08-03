@@ -26,6 +26,12 @@ import {
   upsertTeamMember,
   deleteTeamMember,
   saveSocialImage,
+  uploadGalleryImage,
+  updateGalleryImage,
+  deleteGalleryImage,
+  upsertReview,
+  deleteReview,
+  saveReviewsUrl,
 } from "./actions";
 import { getSetting } from "@/lib/data/settings";
 import { getAdminSession, envAdminEmails } from "@/lib/auth";
@@ -41,6 +47,7 @@ import {
 import { RichField } from "@/components/admin/RichText";
 import { FaqEditor } from "@/components/admin/FaqEditor";
 import { siteConfig } from "@/lib/site-config";
+import { adminPageMeta } from "@/lib/admin-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +60,8 @@ type Tab =
   | "areas"
   | "legal"
   | "images"
+  | "gallery"
+  | "reviews"
   | "leads"
   | "seo"
   | "users";
@@ -66,6 +75,8 @@ const TABS: { key: Tab; label: string; master?: boolean }[] = [
   { key: "areas", label: "Areas" },
   { key: "legal", label: "Legal" },
   { key: "images", label: "Images" },
+  { key: "gallery", label: "Gallery" },
+  { key: "reviews", label: "Reviews" },
   { key: "seo", label: "SEO" },
   { key: "users", label: "Users", master: true },
 ];
@@ -155,7 +166,7 @@ function Card({
 }) {
   return (
     <div
-      className={`rounded-lg border border-neutral-200 bg-white p-4 ${className}`}
+      className={`rounded-xl border border-neutral-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_1px_3px_rgba(16,24,40,0.06)] ${className}`}
     >
       {children}
     </div>
@@ -176,24 +187,16 @@ export default async function ConsolePage({
     (visibleTabs.find((t) => t.key === sp.tab)?.key ?? "home") as Tab;
   const editId = sp.edit;
 
+  const meta = adminPageMeta[tab] ?? { title: "Admin", subtitle: "" };
+
   return (
     <div className="flex flex-col gap-6">
-      <nav className="flex gap-2 border-b border-neutral-200">
-        {visibleTabs.map((t) => (
-          <Link
-            key={t.key}
-            href={`?tab=${t.key}`}
-            prefetch={false}
-            className={`-mb-px border-b-2 px-3 py-2 text-sm ${
-              tab === t.key
-                ? "border-neutral-900 font-medium text-neutral-900"
-                : "border-transparent text-neutral-500"
-            }`}
-          >
-            {t.label}
-          </Link>
-        ))}
-      </nav>
+      <div>
+        <h1 className="font-serif text-2xl font-semibold text-ink sm:text-3xl">{meta.title}</h1>
+        {meta.subtitle ? (
+          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted">{meta.subtitle}</p>
+        ) : null}
+      </div>
 
       {tab === "home" ? <HomeTab editId={editId} /> : null}
       {tab === "leads" ? <LeadsTab /> : null}
@@ -204,30 +207,141 @@ export default async function ConsolePage({
       {tab === "areas" ? <AreasTab editId={editId} error={sp.error} /> : null}
       {tab === "legal" ? <LegalTab /> : null}
       {tab === "images" ? <ImagesTab /> : null}
+      {tab === "gallery" ? <GalleryTab error={sp.error} /> : null}
+      {tab === "reviews" ? <ReviewsTab editId={editId} /> : null}
       {tab === "seo" ? <SeoTab /> : null}
       {tab === "users" && isMaster ? <UsersTab error={sp.error} /> : null}
     </div>
   );
 }
 
-// ── Home (about TRG Digital) ─────────────────────────────────────────────────
-const TRG = {
-  name: "TRG Digital",
-  tagline: "A specialist care sector marketing agency",
-  website: "https://trgdigital.co.uk",
-  email: "lenny@trgdigital.co.uk",
-  services: [
-    "Care-sector website design & build",
-    "SEO & local search visibility",
-    "Lead generation & landing pages (CareBeds)",
-    "Branding, copywriting & content",
-    "Bespoke CRM & admin systems",
-    "AI tools & automation",
-  ],
+// ── Dashboard ────────────────────────────────────────────────────────────────
+const LEAD_INTENT: Record<string, string> = {
+  BOOK_VISIT: "Visit",
+  BROCHURE: "Brochure",
+  CAREERS: "Careers",
 };
 
+function LeadStatusPill({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    NEW: "bg-amber-100 text-amber-700",
+    CONTACTED: "bg-blue-100 text-blue-700",
+    CLOSED: "bg-neutral-100 text-neutral-500",
+  };
+  const label: Record<string, string> = {
+    NEW: "New",
+    CONTACTED: "Contacted",
+    CLOSED: "Closed",
+  };
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${map[status] ?? map.CLOSED}`}>
+      {label[status] ?? status}
+    </span>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  sub,
+  accent,
+  icon,
+}: {
+  label: string;
+  value: number | string;
+  sub?: string;
+  accent?: boolean;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-neutral-200/80 bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_1px_3px_rgba(16,24,40,0.06)]">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">{label}</p>
+          <p className="mt-1.5 font-serif text-3xl font-semibold leading-none text-ink">{value}</p>
+        </div>
+        <span
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+            accent ? "bg-brand-500 text-white" : "bg-brand-50 text-brand-600"
+          }`}
+        >
+          {icon}
+        </span>
+      </div>
+      {sub ? <p className="mt-2 text-xs text-muted">{sub}</p> : null}
+    </div>
+  );
+}
+
+const SI = {
+  inbox: (
+    <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3.75 13 6 5.5h12L20.25 13v4.75a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5z" />
+      <path d="M3.75 13h4l1.5 2.25h5.5L16.25 13h4" />
+    </svg>
+  ),
+  calendar: (
+    <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3.75" y="5.25" width="16.5" height="15" rx="1.5" />
+      <path d="M3.75 9.5h16.5M8 3.75v3M16 3.75v3" />
+    </svg>
+  ),
+  post: (
+    <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 3.75h7.5L18 8.25v11.25a.75.75 0 0 1-.75.75H6a.75.75 0 0 1-.75-.75V4.5A.75.75 0 0 1 6 3.75z" />
+      <path d="M13 3.75V8.5h4.75M8 12.5h6M8 15.5h6" />
+    </svg>
+  ),
+  star: (
+    <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+      <path d="m12 4 2.35 4.76 5.25.76-3.8 3.7.9 5.23L12 16.9l-4.7 2.47.9-5.23-3.8-3.7 5.25-.76z" />
+    </svg>
+  ),
+  briefcase: (
+    <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3.75" y="7.5" width="16.5" height="11.75" rx="1.5" />
+      <path d="M8.25 7.5V6a1.5 1.5 0 0 1 1.5-1.5h4.5a1.5 1.5 0 0 1 1.5 1.5v1.5M3.75 12.5h16.5" />
+    </svg>
+  ),
+  users: (
+    <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="9" cy="8.5" r="3" />
+      <path d="M3.75 19a5.25 5.25 0 0 1 10.5 0M15.5 6.2a3 3 0 0 1 0 5.6M20.25 19a5.25 5.25 0 0 0-3.5-4.95" />
+    </svg>
+  ),
+};
+
+const QUICK_ACTIONS = [
+  { href: "?tab=leads", label: "View leads", icon: SI.inbox },
+  { href: "?tab=posts", label: "Write a post", icon: SI.post },
+  { href: "?tab=reviews", label: "Add a review", icon: SI.star },
+  { href: "?tab=gallery", label: "Upload a photo", icon: SI.users },
+];
+
 async function HomeTab({ editId }: { editId?: string }) {
-  const [team, editing] = await Promise.all([
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const [
+    newLeads,
+    totalLeads,
+    weekLeads,
+    recentLeads,
+    publishedPosts,
+    totalPosts,
+    reviewCount,
+    openJobs,
+    areaCount,
+    team,
+    editing,
+  ] = await Promise.all([
+    prisma.lead.count({ where: { status: "NEW" } }),
+    prisma.lead.count(),
+    prisma.lead.count({ where: { createdAt: { gte: weekAgo } } }),
+    prisma.lead.findMany({ orderBy: { createdAt: "desc" }, take: 6 }),
+    prisma.blogPost.count({ where: { status: "PUBLISHED" } }),
+    prisma.blogPost.count(),
+    prisma.review.count(),
+    prisma.jobPosting.count({ where: { published: true } }),
+    prisma.areaPage.count(),
     prisma.teamMember.findMany({
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     }),
@@ -235,76 +349,104 @@ async function HomeTab({ editId }: { editId?: string }) {
       ? prisma.teamMember.findUnique({ where: { id: editId } })
       : Promise.resolve(null),
   ]);
+
+  const fmtLeadDate = (d: Date) =>
+    new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+
   return (
     <div className="flex flex-col gap-6">
-    <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-      <Card>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/brand/trg-digital.png"
-          alt={TRG.name}
-          className="h-6 w-auto"
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+        <StatCard
+          label="New enquiries"
+          value={newLeads}
+          sub={`${totalLeads} leads all time`}
+          accent={newLeads > 0}
+          icon={SI.inbox}
         />
-        <p className="mt-3 text-sm text-neutral-500">{TRG.tagline}</p>
-        <p className="mt-4 text-sm leading-relaxed text-neutral-700">
-          Welcome to the Ferndale content console. This site was designed and
-          built by {TRG.name}. Use the tabs above to manage enquiries, blog
-          posts, job vacancies, page content, legal pages and image alt text.
-          If you need a hand, just get in touch.
-        </p>
+        <StatCard label="Leads this week" value={weekLeads} sub="Last 7 days" icon={SI.calendar} />
+        <StatCard
+          label="Blog posts"
+          value={publishedPosts}
+          sub={`${Math.max(0, totalPosts - publishedPosts)} in draft`}
+          icon={SI.post}
+        />
+        <StatCard label="Reviews" value={reviewCount} sub="Shown on the site" icon={SI.star} />
+        <StatCard label="Open vacancies" value={openJobs} sub="Live on careers page" icon={SI.briefcase} />
+        <StatCard label="Team members" value={team.length} sub={`${areaCount} local-area pages`} icon={SI.users} />
+      </div>
 
-        <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
-          <div className="rounded-lg border border-neutral-200 p-3">
-            <dt className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-              Website
-            </dt>
-            <dd className="mt-1">
-              <a
-                href={TRG.website}
-                target="_blank"
-                rel="noopener"
-                className="font-medium text-neutral-900 underline"
-              >
-                trgdigital.co.uk
-              </a>
-            </dd>
+      {/* Recent leads + quick actions */}
+      <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+        <Card className="!p-0">
+          <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-3.5">
+            <h2 className="font-medium text-ink">Recent enquiries</h2>
+            <Link href="?tab=leads" prefetch={false} className="text-sm font-medium text-brand-600 hover:text-brand-700">
+              View all →
+            </Link>
           </div>
-          <div className="rounded-lg border border-neutral-200 p-3">
-            <dt className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-              Email
-            </dt>
-            <dd className="mt-1">
-              <a
-                href={`mailto:${TRG.email}`}
-                className="font-medium text-neutral-900 underline"
-              >
-                {TRG.email}
-              </a>
-            </dd>
-          </div>
-        </dl>
-      </Card>
+          {recentLeads.length ? (
+            <ul className="divide-y divide-neutral-100">
+              {recentLeads.map((l) => (
+                <li key={l.id} className="flex items-center gap-3 px-5 py-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-semibold text-brand-700">
+                    {l.name.slice(0, 1).toUpperCase()}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-ink">{l.name}</span>
+                    <span className="block truncate text-xs text-muted">
+                      {LEAD_INTENT[l.intent] ?? "Enquiry"}
+                      {l.source ? ` · ${l.source}` : ""}
+                    </span>
+                  </span>
+                  <LeadStatusPill status={l.status} />
+                  <span className="w-12 shrink-0 text-right text-xs text-muted">{fmtLeadDate(l.createdAt)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="px-5 py-8 text-center text-sm text-muted">
+              No enquiries yet. New website enquiries will appear here.
+            </p>
+          )}
+        </Card>
 
-      <Card>
-        <h2 className="mb-3 font-medium">What we do</h2>
-        <ul className="space-y-2 text-sm text-neutral-700">
-          {TRG.services.map((s) => (
-            <li key={s} className="flex items-start gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-900" />
-              {s}
-            </li>
-          ))}
-        </ul>
-        <a
-          href={TRG.website}
-          target="_blank"
-          rel="noopener"
-          className="mt-5 inline-block rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
-        >
-          Visit our website
-        </a>
-      </Card>
-    </div>
+        <div className="flex flex-col gap-6">
+          <Card>
+            <h2 className="mb-3 font-medium text-ink">Quick actions</h2>
+            <div className="grid grid-cols-2 gap-2">
+              {QUICK_ACTIONS.map((a) => (
+                <Link
+                  key={a.href}
+                  href={a.href}
+                  prefetch={false}
+                  className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-3 text-sm font-medium text-ink transition-colors hover:border-brand-200 hover:bg-brand-50"
+                >
+                  <span className="text-brand-600">{a.icon}</span>
+                  {a.label}
+                </Link>
+              ))}
+            </div>
+          </Card>
+          <Card className="!border-brand-700 !bg-brand-700 text-white">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-100/70">
+              Your website
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-brand-50">
+              This site and console were designed and built from scratch by TRG Digital, no
+              WordPress, no page-builders.
+            </p>
+            <a
+              href="https://trgdigital.co.uk"
+              target="_blank"
+              rel="noopener"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-brand-700"
+            >
+              About TRG Digital →
+            </a>
+          </Card>
+        </div>
+      </div>
 
       <Card>
         <h2 className="mb-1 font-medium">Care team ({team.length})</h2>
@@ -790,6 +932,288 @@ async function ImagesTab() {
         })}
       </ul>
     </Card>
+  );
+}
+
+// ── Gallery (Our Home photos) ────────────────────────────────────────────────
+async function GalleryTab({ error }: { error?: string }) {
+  const images = await prisma.galleryImage.findMany({
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+  });
+
+  return (
+    <div className="flex flex-col gap-8">
+      {error ? (
+        <div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {decodeURIComponent(error)}
+        </div>
+      ) : null}
+
+      <Card>
+        <h2 className="mb-1 font-medium">Add a photo</h2>
+        <p className="mb-4 text-sm text-neutral-500">
+          Upload a photo for the Our Home gallery and give it a clear alt description
+          (read by screen readers and search engines). JPG or PNG, up to about 10MB.
+        </p>
+        <form action={uploadGalleryImage} className="flex flex-col gap-3">
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-neutral-600">Photo</span>
+            <input
+              type="file"
+              name="file"
+              accept="image/*"
+              required
+              className="text-sm file:mr-3 file:rounded file:border-0 file:bg-neutral-900 file:px-3 file:py-1.5 file:text-sm file:text-white"
+            />
+          </label>
+          <Field
+            label="Alt text (describe the photo)"
+            name="alt"
+            required
+            hint="e.g. A resident enjoying afternoon tea in the sunny lounge at Ferndale"
+          />
+          <Field label="Caption (optional, shown under the photo)" name="caption" />
+          <div>
+            <button type="submit" className="rounded bg-brand-700 px-3 py-1.5 text-sm text-white">
+              Upload photo
+            </button>
+          </div>
+        </form>
+      </Card>
+
+      <div>
+        <h2 className="font-medium">Gallery photos ({images.length})</h2>
+        {images.length === 0 ? (
+          <p className="mt-2 text-sm text-neutral-400">
+            No photos yet. Upload your first above.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-3">
+            {images.map((img) => (
+              <li
+                key={img.id}
+                className="flex flex-col gap-3 rounded-lg border border-neutral-200 p-3 sm:flex-row"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img.url}
+                  alt={img.alt}
+                  loading="lazy"
+                  className="h-24 w-36 shrink-0 rounded border border-neutral-200 bg-neutral-50 object-cover"
+                />
+                <form action={updateGalleryImage} className="flex flex-1 flex-col gap-2">
+                  <input type="hidden" name="id" value={img.id} />
+                  <label className="flex flex-col gap-1 text-sm">
+                    <span className="text-xs font-medium text-neutral-500">Alt text</span>
+                    <input
+                      name="alt"
+                      defaultValue={img.alt}
+                      className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+                    />
+                  </label>
+                  <div className="flex gap-2">
+                    <label className="flex flex-1 flex-col gap-1 text-sm">
+                      <span className="text-xs font-medium text-neutral-500">Caption</span>
+                      <input
+                        name="caption"
+                        defaultValue={img.caption ?? ""}
+                        className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+                      />
+                    </label>
+                    <label className="flex w-24 flex-col gap-1 text-sm">
+                      <span className="text-xs font-medium text-neutral-500">Order</span>
+                      <input
+                        name="sortOrder"
+                        type="number"
+                        defaultValue={img.sortOrder}
+                        className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+                      />
+                    </label>
+                  </div>
+                  <div className="pt-1">
+                    <button
+                      type="submit"
+                      className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </form>
+                <form action={deleteGalleryImage} className="sm:self-start">
+                  <input type="hidden" name="id" value={img.id} />
+                  <button type="submit" className="text-sm text-red-600 underline">
+                    Delete
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Reviews (carehome.co.uk, curated) ────────────────────────────────────────
+async function ReviewsTab({ editId }: { editId?: string }) {
+  const [reviews, reviewsUrl, reviewSources] = await Promise.all([
+    prisma.review.findMany({
+      orderBy: [{ sortOrder: "asc" }, { reviewDate: "desc" }, { createdAt: "desc" }],
+    }),
+    getSetting(
+      "reviews_url",
+      "https://www.carehome.co.uk/carehome.cfm/searchazref/10001070CROB",
+    ),
+    getSetting("review_sources", ""),
+  ]);
+  const editing = editId ? reviews.find((r) => r.id === editId) ?? null : null;
+
+  return (
+    <div className="flex flex-col gap-8">
+      <Card>
+        <h2 className="mb-1 font-medium">Your carehome.co.uk page</h2>
+        <p className="mb-3 text-sm text-neutral-500">
+          The link used for &ldquo;Read all our reviews on carehome.co.uk&rdquo;. Reviews cannot be
+          pulled automatically (carehome.co.uk blocks it), so add your best reviews below by copying
+          them from that page.
+        </p>
+        <form action={saveReviewsUrl} className="flex flex-col gap-3">
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-neutral-600">carehome.co.uk page URL</span>
+            <input
+              name="reviewsUrl"
+              defaultValue={reviewsUrl}
+              className="rounded border border-neutral-300 px-2 py-1.5 text-sm"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-neutral-600">
+              Review source links (shown at the top of the Reviews page)
+            </span>
+            <textarea
+              name="reviewSources"
+              defaultValue={reviewSources}
+              rows={4}
+              placeholder={"carehome.co.uk | https://www.carehome.co.uk/...\nGoogle Reviews | https://g.page/...\nFacebook | https://facebook.com/..."}
+              className="rounded border border-neutral-300 px-2 py-1.5 font-mono text-xs"
+            />
+            <span className="text-xs text-neutral-500">
+              One per line, as <code>Label | https://url</code>. Label is optional (defaults to the
+              website name).
+            </span>
+          </label>
+          <button
+            type="submit"
+            className="self-start rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
+          >
+            Save
+          </button>
+        </form>
+        <a
+          href={reviewsUrl}
+          target="_blank"
+          rel="noopener"
+          className="mt-2 inline-block text-sm text-brand-700 underline"
+        >
+          Open your carehome.co.uk page →
+        </a>
+      </Card>
+
+      <Card>
+        <h2 className="mb-3 font-medium">{editing ? "Edit review" : "Add a review"}</h2>
+        <form action={upsertReview} className="flex flex-col gap-3">
+          {editing ? <input type="hidden" name="id" value={editing.id} /> : null}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Author (e.g. J. Smith)" name="author" defaultValue={editing?.author} required />
+            <Field
+              label="Relationship (e.g. Daughter of Resident)"
+              name="relationship"
+              defaultValue={editing?.relationship ?? ""}
+            />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-neutral-600">Rating</span>
+              <select
+                name="rating"
+                defaultValue={String(editing?.rating ?? 5)}
+                className="rounded border border-neutral-300 px-2 py-1.5"
+              >
+                {[5, 4, 3, 2, 1].map((n) => (
+                  <option key={n} value={n}>
+                    {n} star{n > 1 ? "s" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Field
+              label="Date"
+              name="reviewDate"
+              type="date"
+              defaultValue={editing?.reviewDate ? editing.reviewDate.toISOString().slice(0, 10) : ""}
+            />
+            <Field label="Order" name="sortOrder" type="number" defaultValue={String(editing?.sortOrder ?? 0)} />
+          </div>
+          <Field label="Title (optional)" name="title" defaultValue={editing?.title ?? ""} />
+          <Area label="Review" name="body" rows={4} defaultValue={editing?.body} />
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="featured" defaultChecked={editing?.featured ?? false} className="h-4 w-4" />
+            Feature on the homepage carousel
+          </label>
+          <div className="flex items-center gap-3">
+            <button type="submit" className="rounded bg-brand-700 px-3 py-1.5 text-sm text-white">
+              {editing ? "Save changes" : "Add review"}
+            </button>
+            {editing ? (
+              <Link href="?tab=reviews" className="text-sm underline">
+                Cancel
+              </Link>
+            ) : null}
+          </div>
+        </form>
+      </Card>
+
+      <div>
+        <h2 className="font-medium">Reviews ({reviews.length})</h2>
+        {reviews.length === 0 ? (
+          <p className="mt-2 text-sm text-neutral-400">No reviews yet. Add your first above.</p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {reviews.map((r) => (
+              <li
+                key={r.id}
+                className="flex items-start justify-between gap-3 rounded-lg border border-neutral-200 p-3"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">
+                    <span className="text-amber-500">{"★".repeat(r.rating)}</span>
+                    <span className="text-neutral-300">{"★".repeat(5 - r.rating)}</span> {r.author}
+                    {r.relationship ? (
+                      <span className="text-neutral-400"> · {r.relationship}</span>
+                    ) : null}
+                    {r.featured ? (
+                      <span className="ml-2 rounded bg-green-100 px-1.5 py-0.5 text-xs text-green-700">
+                        Featured
+                      </span>
+                    ) : null}
+                  </p>
+                  <p className="mt-1 line-clamp-2 text-sm text-neutral-600">{r.body}</p>
+                </div>
+                <span className="flex shrink-0 items-center gap-3">
+                  <Link href={`?tab=reviews&edit=${r.id}`} className="text-sm text-brand-700 underline">
+                    Edit
+                  </Link>
+                  <form action={deleteReview}>
+                    <input type="hidden" name="id" value={r.id} />
+                    <button className="text-sm text-red-600 underline">Delete</button>
+                  </form>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
   );
 }
 

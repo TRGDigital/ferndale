@@ -4,7 +4,7 @@ import { SHOW_IMAGE_PLACEHOLDERS, isPlaceholderImage } from "@/lib/flags";
 
 const LOGO_SRC = "/images/ferndale-logo.png";
 const LOGO_MISSING = SHOW_IMAGE_PLACEHOLDERS || isPlaceholderImage(LOGO_SRC);
-import { primaryNav } from "@/lib/nav";
+import { primaryNav, headerNav } from "@/lib/nav";
 import { siteConfig } from "@/lib/site-config";
 import { Container, ButtonLink } from "@/components/site/ui";
 import { Icon } from "@/components/site/Icon";
@@ -38,15 +38,51 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex" aria-label="Primary">
-          {primaryNav.map((item) => (
-            <Link
-              key={item.path}
-              href={item.path}
-              className="text-sm text-ink/80 hover:text-brand-700"
-            >
-              {item.name}
-            </Link>
-          ))}
+          {headerNav.map((item) =>
+            item.children ? (
+              <div key={item.path} className="group relative">
+                <Link
+                  href={item.path}
+                  className="flex items-center gap-1 text-sm text-ink/80 hover:text-brand-700"
+                >
+                  {item.name}
+                  <svg
+                    className="h-3.5 w-3.5 transition-transform group-hover:rotate-180"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </Link>
+                <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                  <div className="min-w-[220px] rounded-xl border border-brand-100 bg-cream p-2 shadow-lg">
+                    {item.children.map((c) => (
+                      <Link
+                        key={c.path}
+                        href={c.path}
+                        className="block whitespace-nowrap rounded-lg px-3 py-2 text-sm text-ink/80 hover:bg-brand-50 hover:text-brand-700"
+                      >
+                        {c.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <Link
+                key={item.path}
+                href={item.path}
+                className="text-sm text-ink/80 hover:text-brand-700"
+              >
+                {item.name}
+              </Link>
+            ),
+          )}
           <a
             href={`tel:${siteConfig.telephoneE164}`}
             className="flex items-center gap-1.5 text-sm font-semibold text-brand-700"

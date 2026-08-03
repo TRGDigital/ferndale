@@ -32,7 +32,7 @@ const TEAM = [
 
 export const siteImages: SiteImageEntry[] = [
   // Hero / feature photos
-  { src: `${STORAGE}/site/hero/front.jpg`, alt: "Ferndale Nursing Home, a detached house in Lindfield, with its flower garden in bloom", location: "Hero — Home, About, Contact" },
+  { src: `${STORAGE}/site/hero/front.jpg`, alt: "Ferndale Nursing Home, a detached house in Crawley, with its flower garden in bloom", location: "Hero — Home, About, Contact" },
   { src: `${STORAGE}/site/home/care.jpg`, alt: "A Ferndale carer holding hands and chatting with a resident enjoying a cup of tea in her room", location: "Home — The care we provide section" },
   { src: `${STORAGE}/site/rooms/room.jpg`, alt: "A bright, comfortable resident's room at Ferndale with oak furniture and a garden view", location: "Home — Rooms section" },
   { src: `${STORAGE}/site/dining/dining.jpg`, alt: "The dining room at Ferndale set for a meal", location: "Home — Dining section" },

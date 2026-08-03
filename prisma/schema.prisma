@@ -221,6 +221,36 @@ model Lead {
   @@index([status, createdAt])
 }
 
+// Uploaded photos for the Our Home gallery. Managed in the admin "Gallery" tab
+// (upload + alt text + caption + order). Files live in Supabase Storage (blog bucket, gallery/).
+model GalleryImage {
+  id        String   @id @default(cuid())
+  url       String
+  alt       String   @default("")
+  caption   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([sortOrder])
+}
+
+// Curated reviews (from carehome.co.uk and elsewhere), managed in the admin "Reviews" tab.
+// Featured reviews power the homepage carousel; all show on /reviews/.
+model Review {
+  id           String    @id @default(cuid())
+  author       String
+  relationship String? // e.g. "Daughter of Resident"
+  rating       Int       @default(5) // 1..5
+  title        String?
+  body         String
+  reviewDate   DateTime?
+  featured     Boolean   @default(false)
+  sortOrder    Int       @default(0)
+  createdAt    DateTime  @default(now())
+
+  @@index([featured, sortOrder])
+}
+
 // ── Enums ───────────────────────────────────────────────────────────────────
 
 enum PostStatus {

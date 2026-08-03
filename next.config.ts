@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Hard rule #1: old WordPress URLs all have trailing slashes — match them exactly.
   trailingSlash: true,
+  // Allow photo uploads through server actions (the admin Gallery upload); default is 1MB.
+  experimental: { serverActions: { bodySizeLimit: "12mb" } },
   // Hard rule #6: images live in Supabase Storage, never the WP host.
   images: {
     remotePatterns: [

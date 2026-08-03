@@ -23,6 +23,10 @@ import { tools } from "@/lib/content/tools";
 import { homeFaqs } from "@/lib/content/home-faqs";
 import { welcome, whyChooseUs, heroImage } from "@/lib/content/home";
 import { getTeam } from "@/lib/data/team";
+import { getFeaturedReviews } from "@/lib/data/reviews";
+import { ReviewCarousel } from "@/components/site/ReviewCarousel";
+import { getGalleryImages as getOurHomeGallery } from "@/lib/data/gallery";
+import { GalleryButton } from "@/components/site/GalleryButton";
 import {
   residentReview,
   rooms,
@@ -97,6 +101,8 @@ export default async function HomePage() {
   const faqs = readFaqs(page?.faqs);
   const careTeam = await getTeam();
   const gallery = await getGalleryImages(9).catch(() => []);
+  const featuredReviews = await getFeaturedReviews().catch(() => []);
+  const ourHomeGallery = await getOurHomeGallery().catch(() => []);
 
   // Full-width OpenStreetMap embed (no API key, no cookies).
   const { latitude: lat, longitude: lon } = siteConfig.geo;
@@ -131,6 +137,11 @@ export default async function HomePage() {
                 About our home
               </ButtonLink>
             </div>
+            {ourHomeGallery.length ? (
+              <div className="mt-4">
+                <GalleryButton images={ourHomeGallery} />
+              </div>
+            ) : null}
 
             {/* Mobile: full-bleed image below the text */}
             <div className="-mx-6 mt-10 lg:hidden">
@@ -581,7 +592,31 @@ export default async function HomePage() {
         </Container>
       </Section>
 
-      {/* Resident reviews */}
+      {/* Resident reviews carousel (featured reviews, managed in the admin);
+          falls back to the static quote until reviews are added. */}
+      {featuredReviews.length ? (
+        <Section className="bg-brand-700">
+          <Container>
+            <div className="mb-10 text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-100">
+                Resident reviews
+              </p>
+              <h2 className="mt-2 text-3xl font-semibold text-white">
+                Kind words from families
+              </h2>
+            </div>
+            <ReviewCarousel reviews={featuredReviews} />
+            <div className="mt-10 text-center">
+              <Link
+                href="/reviews/"
+                className="inline-flex items-center justify-center rounded-full border border-white/40 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-white/10"
+              >
+                Read all our reviews →
+              </Link>
+            </div>
+          </Container>
+        </Section>
+      ) : (
       <Section className="relative overflow-hidden bg-white">
         <Decor tone="mixed" />
         <Container className="relative z-10 max-w-3xl">
@@ -615,6 +650,7 @@ export default async function HomePage() {
           </div>
         </Container>
       </Section>
+      )}
 
       {/* Local area / find us */}
       <BleedFeature

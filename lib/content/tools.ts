@@ -60,6 +60,30 @@ export const tools: SiteTool[] = [
     tool: "dementia-signs",
   },
   {
+    name: "Is it time for care?",
+    href: "/is-it-time-for-care/",
+    description:
+      "A gentle, private checklist for families wondering whether a loved one might need more support or nursing care.",
+    icon: "heart",
+    tool: "care-checklist",
+  },
+  {
+    name: "Cost of care estimator",
+    href: "/cost-of-care/",
+    description:
+      "Estimate the weekly, monthly and yearly cost of care at Ferndale, and see who is likely to pay once savings, property and benefits are counted.",
+    icon: "calculator",
+    tool: "cost-estimator",
+  },
+  {
+    name: "Book a visit",
+    href: "/book-a-visit/",
+    description:
+      "Choose a date and time that suits you, and come and see Ferndale for yourself. Meet the team and ask us anything.",
+    icon: "clock",
+    tool: "book-visit",
+  },
+  {
     name: "Local council & funding",
     href: "/local-council-funding/",
     description:

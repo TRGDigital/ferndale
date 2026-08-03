@@ -9,6 +9,7 @@ import { revalidateTags } from "@/lib/revalidate";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { generateAreaLandingContent } from "@/lib/ai/area-content";
 import { townBySlug, careBySlug, titleCaseSlug } from "@/lib/content/local-areas";
+import { createServiceClient, GALLERY_BUCKET, GALLERY_PREFIX } from "@/lib/supabase/admin";
 
 // ── helpers ──────────────────────────────────────────────────────────────
 function str(fd: FormData, key: string): string {
@@ -666,4 +667,138 @@ export async function deleteAdminUser(fd: FormData) {
 
   await prisma.adminUser.delete({ where: { id } });
   redirect("/admin/?tab=users");
+}
+
+// ── Gallery (Our Home) ─────────────────────────────────────────────────────
+
+const galleryErr = (msg: string) =>
+  redirect(`/admin/?tab=gallery&error=${encodeURIComponent(msg)}`);
+
+export async function uploadGalleryImage(fd: FormData) {
+  await requireAdmin();
+  const file = fd.get("file");
+  if (!(file instanceof File) || file.size === 0) galleryErr("Please choose an image to upload.");
+  const f = file as File;
+  if (!f.type.startsWith("image/")) galleryErr("That file is not an image.");
+
+  const supabase = createServiceClient();
+  const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+  const path = `${GALLERY_PREFIX}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const bytes = new Uint8Array(await f.arrayBuffer());
+  const { error } = await supabase.storage
+    .from(GALLERY_BUCKET)
+    .upload(path, bytes, { contentType: f.type, upsert: false });
+  if (error) galleryErr(`Upload failed: ${error.message}`);
+
+  const { data } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(path);
+  const max = await prisma.galleryImage.aggregate({ _max: { sortOrder: true } });
+  await prisma.galleryImage.create({
+    data: {
+      url: data.publicUrl,
+      alt: str(fd, "alt"),
+      caption: optStr(fd, "caption"),
+      sortOrder: (max._max.sortOrder ?? 0) + 10,
+    },
+  });
+  revalidateTags(["gallery"]);
+  revalidatePath("/our-home/");
+  redirect("/admin/?tab=gallery");
+}
+
+export async function updateGalleryImage(fd: FormData) {
+  await requireAdmin();
+  const id = str(fd, "id");
+  if (!id) redirect("/admin/?tab=gallery");
+  await prisma.galleryImage.update({
+    where: { id },
+    data: {
+      alt: str(fd, "alt"),
+      caption: optStr(fd, "caption"),
+      sortOrder: Number.parseInt(str(fd, "sortOrder"), 10) || 0,
+    },
+  });
+  revalidateTags(["gallery"]);
+  revalidatePath("/our-home/");
+  redirect("/admin/?tab=gallery");
+}
+
+export async function deleteGalleryImage(fd: FormData) {
+  await requireAdmin();
+  const id = str(fd, "id");
+  const row = await prisma.galleryImage.findUnique({ where: { id } });
+  if (row) {
+    // Only remove the storage object for images WE uploaded (gallery/ prefix) — never the
+    // shared site photos that the gallery may also reference.
+    try {
+      const marker = `/object/public/${GALLERY_BUCKET}/`;
+      const at = row.url.indexOf(marker);
+      if (at !== -1) {
+        const path = row.url.slice(at + marker.length);
+        if (path.startsWith(`${GALLERY_PREFIX}/`)) {
+          await createServiceClient().storage.from(GALLERY_BUCKET).remove([path]);
+        }
+      }
+    } catch {
+      /* ignore storage cleanup errors — the DB row is what matters */
+    }
+    await prisma.galleryImage.delete({ where: { id } });
+  }
+  revalidateTags(["gallery"]);
+  revalidatePath("/our-home/");
+  redirect("/admin/?tab=gallery");
+}
+
+// ── Reviews (carehome.co.uk, curated) ──────────────────────────────────────
+
+export async function upsertReview(fd: FormData) {
+  await requireAdmin();
+  const id = optStr(fd, "id");
+  const dateRaw = str(fd, "reviewDate");
+  const data = {
+    author: str(fd, "author"),
+    relationship: optStr(fd, "relationship"),
+    rating: Math.min(5, Math.max(1, Number.parseInt(str(fd, "rating"), 10) || 5)),
+    title: optStr(fd, "title"),
+    body: str(fd, "body"),
+    reviewDate: dateRaw ? new Date(dateRaw) : null,
+    featured: str(fd, "featured") === "on",
+    sortOrder: Number.parseInt(str(fd, "sortOrder"), 10) || 0,
+  };
+  if (id) {
+    await prisma.review.update({ where: { id }, data });
+  } else {
+    await prisma.review.create({ data });
+  }
+  revalidateTags(["reviews"]);
+  revalidatePath("/reviews/");
+  revalidatePath("/");
+  redirect("/admin/?tab=reviews");
+}
+
+export async function deleteReview(fd: FormData) {
+  await requireAdmin();
+  await prisma.review.delete({ where: { id: str(fd, "id") } });
+  revalidateTags(["reviews"]);
+  revalidatePath("/reviews/");
+  revalidatePath("/");
+  redirect("/admin/?tab=reviews");
+}
+
+export async function saveReviewsUrl(fd: FormData) {
+  await requireAdmin();
+  const value = str(fd, "reviewsUrl");
+  const sources = str(fd, "reviewSources");
+  await prisma.siteSetting.upsert({
+    where: { key: "reviews_url" },
+    update: { value },
+    create: { key: "reviews_url", value },
+  });
+  await prisma.siteSetting.upsert({
+    where: { key: "review_sources" },
+    update: { value: sources },
+    create: { key: "review_sources", value: sources },
+  });
+  revalidateTags(["settings"]);
+  revalidatePath("/reviews/");
+  redirect("/admin/?tab=reviews");
 }
