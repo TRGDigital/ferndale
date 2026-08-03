@@ -56,7 +56,7 @@ export const tools: SiteTool[] = [
     href: "/dementia-signs/",
     description:
       "A short, private checklist to help you decide whether it is worth speaking to a doctor about a relative's memory. Based on the AD8 screening tool.",
-    icon: "puzzle",
+    icon: "leaf",
     tool: "dementia-signs",
   },
   {

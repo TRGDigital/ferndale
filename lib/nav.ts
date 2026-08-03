@@ -7,10 +7,10 @@ import { tools } from "@/lib/content/tools";
 export const primaryNav = [
   { name: "Home", path: "/" },
   { name: "About Us", path: "/about-us/" },
-  { name: "Our Home", path: "/our-home/" },
-  { name: "Care Team", path: "/care-team/" },
-  { name: "Reviews", path: "/reviews/" },
-  { name: "Fees & Funding", path: "/fees/" },
+  { name: "Our Home", path: "/our-home/", icon: "home" },
+  { name: "Care Team", path: "/care-team/", icon: "users" },
+  { name: "Reviews", path: "/reviews/", icon: "heart" },
+  { name: "Fees & Funding", path: "/fees/", icon: "calculator" },
   { name: "Activities", path: "/activities/" },
   { name: "Tools", path: "/tools/" },
   { name: "Careers", path: "/careers/" },
@@ -21,7 +21,7 @@ export const primaryNav = [
 export type NavNode = {
   name: string;
   path: string;
-  children?: { name: string; path: string }[];
+  children?: { name: string; path: string; icon?: string }[];
 };
 
 export const headerNav: NavNode[] = [
@@ -30,17 +30,17 @@ export const headerNav: NavNode[] = [
     name: "About Us",
     path: "/about-us/",
     children: [
-      { name: "Our Home", path: "/our-home/" },
-      { name: "Care Team", path: "/care-team/" },
-      { name: "Reviews", path: "/reviews/" },
-      { name: "Fees & Funding", path: "/fees/" },
+      { name: "Our Home", path: "/our-home/", icon: "home" },
+      { name: "Care Team", path: "/care-team/", icon: "users" },
+      { name: "Reviews", path: "/reviews/", icon: "heart" },
+      { name: "Fees & Funding", path: "/fees/", icon: "calculator" },
     ],
   },
   { name: "Activities", path: "/activities/" },
   {
     name: "Tools",
     path: "/tools/",
-    children: tools.map((t) => ({ name: t.name, path: t.href })),
+    children: tools.map((t) => ({ name: t.name, path: t.href, icon: t.icon })),
   },
   { name: "Careers", path: "/careers/" },
   { name: "Blog", path: "/blog/" },

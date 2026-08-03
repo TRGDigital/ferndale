@@ -65,8 +65,13 @@ export function Header() {
                       <Link
                         key={c.path}
                         href={c.path}
-                        className="block whitespace-nowrap rounded-lg px-3 py-2 text-sm text-ink/80 hover:bg-brand-50 hover:text-brand-700"
+                        className="flex items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2 text-sm text-ink/80 hover:bg-brand-50 hover:text-brand-700"
                       >
+                        {c.icon ? (
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-100/70 text-brand-700">
+                            <Icon name={c.icon} className="h-4 w-4" />
+                          </span>
+                        ) : null}
                         {c.name}
                       </Link>
                     ))}
