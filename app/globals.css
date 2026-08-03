@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* Ferndale palette — calm sage green led, warm cream + terracotta accent.
    brand-500 is the green accent (icons); 600/700 are deeper for buttons +
@@ -71,4 +72,10 @@ html.readable h3 {
 html.readable {
   letter-spacing: 0.01em;
   line-height: 1.7;
+}
+
+/* Blog: give TOC-linked headings breathing room from the sticky header so
+   anchor jumps don't land under it. */
+.prose :is(h2, h3) {
+  scroll-margin-top: 6rem;
 }

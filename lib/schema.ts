@@ -118,6 +118,27 @@ export function faqPageSchema(faqs: Faq[], pageUrl?: string) {
   };
 }
 
+/** A local care service (e.g. "Residential Care in Cuckfield") provided by the home. */
+export function areaServiceSchema(opts: {
+  path: string;
+  serviceName: string;
+  townName: string;
+  description?: string;
+}) {
+  const url = `${siteConfig.url}${opts.path}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": `${url}#service`,
+    name: `${opts.serviceName} in ${opts.townName}`,
+    serviceType: opts.serviceName,
+    ...(opts.description ? { description: opts.description } : {}),
+    provider: { "@id": ORG_ID },
+    areaServed: { "@type": "Place", name: opts.townName },
+    url,
+  };
+}
+
 /** BreadcrumbList helper for nested pages. */
 export function breadcrumbSchema(
   crumbs: { name: string; path: string }[],

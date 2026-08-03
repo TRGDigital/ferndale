@@ -4,7 +4,7 @@ import { useState } from "react";
 
 type Status = "idle" | "submitting" | "ok" | "error";
 
-export function ContactForm() {
+export function ContactForm({ source = "/contact-us/" }: { source?: string } = {}) {
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
 
@@ -17,7 +17,7 @@ export function ContactForm() {
       const res = await fetch("/api/public/leads/", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...payload, source: "/contact-us/" }),
+        body: JSON.stringify({ ...payload, source }),
       });
       if (!res.ok) throw new Error(String(res.status));
       setStatus("ok");

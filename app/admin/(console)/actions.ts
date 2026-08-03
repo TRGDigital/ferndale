@@ -1,11 +1,14 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { requireAdmin, requireMaster } from "@/lib/auth";
 import { revalidateTags } from "@/lib/revalidate";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { generateAreaLandingContent } from "@/lib/ai/area-content";
+import { townBySlug, careBySlug, titleCaseSlug } from "@/lib/content/local-areas";
 
 // ── helpers ──────────────────────────────────────────────────────────────
 function str(fd: FormData, key: string): string {
@@ -20,6 +23,20 @@ function jsonField(fd: FormData, key: string) {
   const raw = str(fd, key);
   if (!raw) return Prisma.JsonNull;
   return JSON.parse(raw) as Prisma.InputJsonValue;
+}
+/** Parse one-per-line "Label | /path/" into [{label, href}]; empty -> JSON null. */
+function linksField(fd: FormData, key: string) {
+  const links = str(fd, key)
+    .split("\n")
+    .map((line) => {
+      const i = line.indexOf("|");
+      if (i === -1) return null;
+      const label = line.slice(0, i).trim();
+      const href = line.slice(i + 1).trim();
+      return label && href ? { label, href } : null;
+    })
+    .filter((l): l is { label: string; href: string } => !!l);
+  return links.length ? (links as unknown as Prisma.InputJsonValue) : Prisma.JsonNull;
 }
 
 // ── auth ─────────────────────────────────────────────────────────────────
@@ -120,7 +137,6 @@ export async function deleteAuthor(fd: FormData) {
 // ── site pages ─────────────────────────────────────────────────────────────
 export async function upsertPage(fd: FormData) {
   await requireAdmin();
-  const id = optStr(fd, "id");
   const path = str(fd, "path");
   const data = {
     path,
@@ -133,19 +149,17 @@ export async function upsertPage(fd: FormData) {
     footer: jsonField(fd, "footer"),
     published: str(fd, "published") === "on",
   };
-  if (id) {
-    await prisma.sitePage.update({ where: { id }, data });
-  } else {
-    await prisma.sitePage.create({ data });
-  }
+  // Idempotent by path — works whether or not a row exists yet.
+  await prisma.sitePage.upsert({ where: { path }, update: data, create: data });
   revalidateTags(["site-pages", `page:${path}`, "footer"]);
   redirect("/admin/?tab=pages");
 }
 
+/** Remove the saved override so the page reverts to its built-in values. */
 export async function deletePage(fd: FormData) {
   await requireAdmin();
   const path = str(fd, "path");
-  await prisma.sitePage.delete({ where: { id: str(fd, "id") } });
+  await prisma.sitePage.deleteMany({ where: { path } });
   revalidateTags(["site-pages", `page:${path}`, "footer"]);
   redirect("/admin/?tab=pages");
 }
@@ -249,6 +263,320 @@ export async function resetLegal(fd: FormData) {
   redirect("/admin/?tab=legal");
 }
 
+// ── local-area landing pages ─────────────────────────────────────────────────
+export async function upsertArea(fd: FormData) {
+  await requireAdmin();
+  const path = str(fd, "path");
+  if (!path) redirect("/admin/?tab=areas");
+  const offerRaw = str(fd, "offerPoints");
+  const offerPoints = offerRaw
+    ? offerRaw.split("\n").map((s) => s.trim()).filter(Boolean)
+    : [];
+  const data = {
+    heading: optStr(fd, "heading"),
+    intro: optStr(fd, "intro"),
+    body: optStr(fd, "body"),
+    areasHeading: optStr(fd, "areasHeading"),
+    areasBody: optStr(fd, "areasBody"),
+    areasLinks: linksField(fd, "areasLinks"),
+    metaTitle: optStr(fd, "metaTitle"),
+    metaDescription: optStr(fd, "metaDescription"),
+    offerPoints: offerPoints.length
+      ? (offerPoints as unknown as Prisma.InputJsonValue)
+      : Prisma.JsonNull,
+    faqs: jsonField(fd, "faqs"),
+  };
+  // A built-in combo override (managed stays false). Use Reset to revert to the code default.
+  await prisma.areaPage.upsert({
+    where: { path },
+    update: data,
+    create: { path, ...data },
+  });
+  revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
+  redirect(`/admin/?tab=areas&edit=${encodeURIComponent(path)}`);
+}
+
+/** Remove the override so the area page reverts to its built-in wording. */
+export async function resetArea(fd: FormData) {
+  await requireAdmin();
+  const path = str(fd, "path");
+  await prisma.areaPage.deleteMany({ where: { path } });
+  revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
+  redirect("/admin/?tab=areas");
+}
+
+// ── Admin-created landing pages (managed = true, a town x service the code lists don't define) ──
+
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/** Create a new landing page from a town + service + keyword. Starts as a draft (unpublished). */
+export async function createAreaPage(fd: FormData) {
+  await requireAdmin();
+  const townName = str(fd, "townName");
+  const careName = str(fd, "careName");
+  if (!townName || !careName) redirect("/admin/?tab=areas&error=missing-town-or-service");
+  const townSlug = slugify(townName);
+  const careSlug = slugify(careName);
+  if (!townSlug || !careSlug) redirect("/admin/?tab=areas&error=bad-slug");
+  const path = `/${townSlug}/${careSlug}/`;
+  const targetKeyword = optStr(fd, "targetKeyword");
+  const careNoun = careName.toLowerCase();
+
+  const existing = await prisma.areaPage.findUnique({ where: { path } });
+  if (existing) {
+    // Promote an existing override into a managed page rather than duplicating the path.
+    await prisma.areaPage.update({
+      where: { path },
+      data: { managed: true, townSlug, townName, careSlug, careName, careNoun, targetKeyword },
+    });
+  } else {
+    await prisma.areaPage.create({
+      data: {
+        path,
+        managed: true,
+        published: false,
+        townSlug,
+        townName,
+        careSlug,
+        careName,
+        careNoun,
+        targetKeyword,
+      },
+    });
+  }
+  revalidateTags(["area-pages", `area:${path}`]);
+  redirect(`/admin/?tab=areas&edit=${encodeURIComponent(path)}`);
+}
+
+/** Full content update for a managed landing page. */
+export async function updateAreaPage(fd: FormData) {
+  await requireAdmin();
+  const path = str(fd, "path");
+  if (!path) redirect("/admin/?tab=areas");
+  const offerRaw = str(fd, "offerPoints");
+  const offerPoints = offerRaw
+    ? offerRaw.split("\n").map((s) => s.trim()).filter(Boolean)
+    : [];
+  await prisma.areaPage.update({
+    where: { path },
+    data: {
+      careName: optStr(fd, "careName"),
+      careNoun: optStr(fd, "careNoun"),
+      targetKeyword: optStr(fd, "targetKeyword"),
+      metaTitle: optStr(fd, "metaTitle"),
+      metaDescription: optStr(fd, "metaDescription"),
+      heading: optStr(fd, "heading"),
+      intro: optStr(fd, "intro"),
+      body: optStr(fd, "body"),
+      areasHeading: optStr(fd, "areasHeading"),
+      areasBody: optStr(fd, "areasBody"),
+      areasLinks: linksField(fd, "areasLinks"),
+      offerPoints: offerPoints.length
+        ? (offerPoints as unknown as Prisma.InputJsonValue)
+        : Prisma.JsonNull,
+      faqs: jsonField(fd, "faqs"),
+    },
+  });
+  revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
+  redirect(`/admin/?tab=areas&edit=${encodeURIComponent(path)}`);
+}
+
+/** Publish / unpublish a managed landing page. */
+export async function setAreaPublished(fd: FormData) {
+  await requireAdmin();
+  const path = str(fd, "path");
+  const published = str(fd, "published") === "true";
+  await prisma.areaPage.update({ where: { path }, data: { published } });
+  revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
+  redirect(`/admin/?tab=areas&edit=${encodeURIComponent(path)}`);
+}
+
+/** Delete a managed landing page. */
+export async function deleteAreaPage(fd: FormData) {
+  await requireAdmin();
+  const path = str(fd, "path");
+  await prisma.areaPage.deleteMany({ where: { path, managed: true } });
+  revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
+  redirect("/admin/?tab=areas");
+}
+
+/** Generate all page content from the target keyword with AI, then save it (editable after). */
+export async function generateAreaContent(fd: FormData) {
+  await requireAdmin();
+  const path = str(fd, "path");
+  if (!path) redirect("/admin/?tab=areas");
+  const row = await prisma.areaPage.findUnique({ where: { path } });
+
+  // Works for admin-created pages AND built-in combos: derive town/service from the row, else
+  // from the path via the code lists.
+  const m = path.match(/^\/([^/]+)\/([^/]+)\/$/);
+  const townSlug = m?.[1] ?? "";
+  const careSlug = m?.[2] ?? "";
+  const codeTown = townBySlug(townSlug);
+  const codeCare = careBySlug(careSlug);
+  const townName = row?.townName ?? codeTown?.name ?? titleCaseSlug(townSlug);
+  const careName = row?.careName ?? codeCare?.name ?? titleCaseSlug(careSlug);
+  if (!townName || !careName) redirect("/admin/?tab=areas");
+  const keyword =
+    optStr(fd, "targetKeyword") ?? row?.targetKeyword ?? `${careName} in ${townName}`;
+
+  // redirect() must stay OUT of the try/catch (Next throws NEXT_REDIRECT internally).
+  let error = "";
+  try {
+    const c = await generateAreaLandingContent({ townName, careName, keyword });
+    const content = {
+      targetKeyword: keyword,
+      metaTitle: c.metaTitle,
+      metaDescription: c.metaDescription,
+      heading: c.heading,
+      intro: c.intro,
+      body: c.body,
+      offerPoints: c.offerPoints as unknown as Prisma.InputJsonValue,
+      faqs: c.faqs as unknown as Prisma.InputJsonValue,
+    };
+    // update leaves managed/published untouched (managed pages keep their draft state); create makes
+    // a built-in override (managed = false, published so it shows immediately).
+    await prisma.areaPage.upsert({
+      where: { path },
+      update: content,
+      create: {
+        path,
+        managed: false,
+        published: true,
+        townSlug,
+        townName,
+        careSlug,
+        careName,
+        careNoun: careName.toLowerCase(),
+        ...content,
+      },
+    });
+    revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
+  } catch (e) {
+    error = e instanceof Error ? e.message : "AI generation failed";
+  }
+  const base = `/admin/?tab=areas&edit=${encodeURIComponent(path)}`;
+  redirect(error ? `${base}&error=${encodeURIComponent(error)}` : base);
+}
+
+// ── Site settings (editable key/value) ─────────────────────────────────────
+
+/** Upsert a single editable site setting (e.g. the read-aloud welcome). */
+export async function upsertSetting(fd: FormData) {
+  await requireAdmin();
+  const key = str(fd, "key");
+  if (!key) redirect("/admin/?tab=home");
+  const value = str(fd, "value").slice(0, 4000);
+  await prisma.siteSetting.upsert({
+    where: { key },
+    update: { value },
+    create: { key, value },
+  });
+  revalidateTags(["settings"]);
+  redirect("/admin/?tab=home");
+}
+
+/** Upload the site social-share image to public Storage; returns its URL or null. */
+async function uploadSocialImage(file: File | null): Promise<string | null> {
+  if (!file || typeof file !== "object" || file.size === 0) return null;
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  const ext = (file.type.split("/").pop() || "jpg").replace(/[^a-z0-9]/g, "");
+  const path = `site/social/og-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+  const { createClient } = await import("@supabase/supabase-js");
+  const sb = createClient(url, key);
+  const buf = Buffer.from(await file.arrayBuffer());
+  const { error } = await sb.storage
+    .from("blog")
+    .upload(path, buf, { contentType: file.type || "image/jpeg", upsert: true });
+  if (error) return null;
+  return `${url}/storage/v1/object/public/blog/${path}`;
+}
+
+/** Set the site-wide social share image (og:image): upload a file or paste a URL. */
+export async function saveSocialImage(fd: FormData) {
+  await requireAdmin();
+  const uploaded = await uploadSocialImage(fd.get("file") as File | null);
+  // An uploaded file wins; otherwise use a pasted URL (blank clears it).
+  const value = uploaded ?? str(fd, "url");
+  await prisma.siteSetting.upsert({
+    where: { key: "og_image" },
+    update: { value },
+    create: { key: "og_image", value },
+  });
+  revalidateTags(["settings"]);
+  revalidatePath("/", "layout"); // refresh og:image across the whole site
+  redirect("/admin/?tab=seo");
+}
+
+// ── Care team (add / edit / remove) ────────────────────────────────────────
+
+/** Upload a staff photo to public Storage and return its URL (or null). */
+async function uploadTeamPhoto(
+  file: File | null,
+  name: string,
+): Promise<string | null> {
+  if (!file || typeof file !== "object" || file.size === 0) return null;
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  const slug =
+    name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") ||
+    "member";
+  const ext = (file.type.split("/").pop() || "jpg").replace(/[^a-z0-9]/g, "");
+  const path = `site/team/${slug}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+  const { createClient } = await import("@supabase/supabase-js");
+  const sb = createClient(url, key);
+  const buf = Buffer.from(await file.arrayBuffer());
+  const { error } = await sb.storage
+    .from("blog")
+    .upload(path, buf, { contentType: file.type || "image/jpeg", upsert: true });
+  if (error) return null;
+  return `${url}/storage/v1/object/public/blog/${path}`;
+}
+
+/** Add a new team member or update an existing one (with optional new photo). */
+export async function upsertTeamMember(fd: FormData) {
+  await requireAdmin();
+  const id = optStr(fd, "id");
+  const name = str(fd, "name");
+  const role = str(fd, "role");
+  if (!name || !role) redirect("/admin/?tab=home");
+  const bio = optStr(fd, "bio");
+  const sortOrder = Number.parseInt(str(fd, "sortOrder"), 10);
+  const order = Number.isFinite(sortOrder) ? sortOrder : 50;
+  const photoUrl = await uploadTeamPhoto(fd.get("photo") as File | null, name);
+
+  if (id) {
+    await prisma.teamMember.update({
+      where: { id },
+      data: { name, role, bio, sortOrder: order, ...(photoUrl ? { photoUrl } : {}) },
+    });
+  } else {
+    await prisma.teamMember.create({
+      data: { name, role, bio, sortOrder: order, photoUrl },
+    });
+  }
+  revalidateTags(["team"]);
+  redirect("/admin/?tab=home");
+}
+
+/** Remove a team member. */
+export async function deleteTeamMember(fd: FormData) {
+  await requireAdmin();
+  const id = str(fd, "id");
+  if (id) await prisma.teamMember.delete({ where: { id } }).catch(() => {});
+  revalidateTags(["team"]);
+  redirect("/admin/?tab=home");
+}
+
 // ── leads / CRM ────────────────────────────────────────────────────────────
 export async function updateLeadStatus(fd: FormData) {
   await requireAdmin();
@@ -338,112 +666,4 @@ export async function deleteAdminUser(fd: FormData) {
 
   await prisma.adminUser.delete({ where: { id } });
   redirect("/admin/?tab=users");
-}
-
-// ── local-area landing pages ─────────────────────────────────────────────────
-export async function upsertArea(fd: FormData) {
-  await requireAdmin();
-  const path = str(fd, "path");
-  if (!path) redirect("/admin/?tab=areas");
-  const heading = optStr(fd, "heading");
-  const intro = optStr(fd, "intro");
-  const body = optStr(fd, "body");
-  if (!heading && !intro && !body) {
-    await prisma.areaPage.deleteMany({ where: { path } });
-  } else {
-    await prisma.areaPage.upsert({
-      where: { path },
-      update: { heading, intro, body },
-      create: { path, heading, intro, body },
-    });
-  }
-  revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
-  redirect("/admin/?tab=areas");
-}
-
-/** Remove the override so the area page reverts to its built-in wording. */
-export async function resetArea(fd: FormData) {
-  await requireAdmin();
-  const path = str(fd, "path");
-  await prisma.areaPage.deleteMany({ where: { path } });
-  revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
-  redirect("/admin/?tab=areas");
-}
-
-// ── Site settings (editable key/value) ─────────────────────────────────────
-
-/** Upsert a single editable site setting (e.g. the read-aloud welcome). */
-export async function upsertSetting(fd: FormData) {
-  await requireAdmin();
-  const key = str(fd, "key");
-  if (!key) redirect("/admin/?tab=home");
-  const value = str(fd, "value").slice(0, 4000);
-  await prisma.siteSetting.upsert({
-    where: { key },
-    update: { value },
-    create: { key, value },
-  });
-  revalidateTags(["settings"]);
-  redirect("/admin/?tab=home");
-}
-
-// ── Care team (add / edit / remove) ────────────────────────────────────────
-
-/** Upload a staff photo to public Storage and return its URL (or null). */
-async function uploadTeamPhoto(
-  file: File | null,
-  name: string,
-): Promise<string | null> {
-  if (!file || typeof file !== "object" || file.size === 0) return null;
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
-  const slug =
-    name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") ||
-    "member";
-  const ext = (file.type.split("/").pop() || "jpg").replace(/[^a-z0-9]/g, "");
-  const path = `site/team/${slug}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
-  const { createClient } = await import("@supabase/supabase-js");
-  const sb = createClient(url, key);
-  const buf = Buffer.from(await file.arrayBuffer());
-  const { error } = await sb.storage
-    .from("blog")
-    .upload(path, buf, { contentType: file.type || "image/jpeg", upsert: true });
-  if (error) return null;
-  return `${url}/storage/v1/object/public/blog/${path}`;
-}
-
-/** Add a new team member or update an existing one (with optional new photo). */
-export async function upsertTeamMember(fd: FormData) {
-  await requireAdmin();
-  const id = optStr(fd, "id");
-  const name = str(fd, "name");
-  const role = str(fd, "role");
-  if (!name || !role) redirect("/admin/?tab=home");
-  const bio = optStr(fd, "bio");
-  const sortOrder = Number.parseInt(str(fd, "sortOrder"), 10);
-  const order = Number.isFinite(sortOrder) ? sortOrder : 50;
-  const photoUrl = await uploadTeamPhoto(fd.get("photo") as File | null, name);
-
-  if (id) {
-    await prisma.teamMember.update({
-      where: { id },
-      data: { name, role, bio, sortOrder: order, ...(photoUrl ? { photoUrl } : {}) },
-    });
-  } else {
-    await prisma.teamMember.create({
-      data: { name, role, bio, sortOrder: order, photoUrl },
-    });
-  }
-  revalidateTags(["team"]);
-  redirect("/admin/?tab=home");
-}
-
-/** Remove a team member. */
-export async function deleteTeamMember(fd: FormData) {
-  await requireAdmin();
-  const id = str(fd, "id");
-  if (id) await prisma.teamMember.delete({ where: { id } }).catch(() => {});
-  revalidateTags(["team"]);
-  redirect("/admin/?tab=home");
 }

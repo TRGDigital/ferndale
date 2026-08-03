@@ -80,13 +80,31 @@ model SitePage {
 /// Local-area landing pages (/{town}/{care}/). Code provides a default; this
 /// holds the per-page override edited in the admin "Areas" tab.
 model AreaPage {
-  id        String   @id @default(cuid())
-  path      String   @unique // "/horsham/nursing-care/"
-  heading   String?
-  intro     String? // HTML for the top written content (hero)
-  body      String? // HTML for the extra paragraphs below "What we offer"
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
+  id              String   @id @default(cuid())
+  path            String   @unique // "/horsham/nursing-care/"
+  // When `managed` is true this row IS the page (created in the admin): it defines a town x service
+  // combo that need not exist in the code lists. Legacy rows (managed = false) are just content
+  // overrides for a code-defined combo and leave the town/service fields null.
+  managed         Boolean  @default(false)
+  published       Boolean  @default(true)
+  townSlug        String?
+  townName        String?
+  careSlug        String?
+  careName        String? // "Dementia Care"
+  careNoun        String? // "dementia care"
+  targetKeyword   String? // the keyword the page is written to target
+  metaTitle       String?
+  metaDescription String?
+  heading         String?
+  intro           String? // HTML for the top written content (hero)
+  body            String? // HTML for the extra paragraphs below "What we offer"
+  areasHeading    String? // "Areas we cover" heading; falls back to "{service} near {town}"
+  areasBody       String? // HTML for the "Areas we cover" paragraph; falls back to a template
+  areasLinks      Json? // [{ label, href }] — the grid of nearby links; falls back to auto cross-links
+  offerPoints     Json? // string[] — "What we offer" bullets; falls back to the care-type default
+  faqs            Json? // [{ question, answer }]
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
 }
 
 /// Managed alt text keyed by image src — surfaced via <AltMapProvider>/<SiteImage>.

@@ -12,23 +12,35 @@ import {
   deleteJob,
   upsertLegal,
   resetLegal,
+  upsertArea,
+  resetArea,
+  createAreaPage,
+  updateAreaPage,
+  setAreaPublished,
+  deleteAreaPage,
+  generateAreaContent,
   updateLeadStatus,
   deleteLead,
   createAdminUser,
   deleteAdminUser,
-  upsertArea,
-  resetArea,
   upsertTeamMember,
   deleteTeamMember,
+  saveSocialImage,
 } from "./actions";
+import { getSetting } from "@/lib/data/settings";
 import { getAdminSession, envAdminEmails } from "@/lib/auth";
 import { siteImages } from "@/lib/content/site-images";
 import { legalSlugs, legalDefaults } from "@/lib/content/legal";
+import { managedPages } from "@/lib/content/managed-pages";
 import {
   towns,
   careTypes,
   defaultAreaContent,
+  defaultAreasBody,
 } from "@/lib/content/local-areas";
+import { RichField } from "@/components/admin/RichText";
+import { FaqEditor } from "@/components/admin/FaqEditor";
+import { siteConfig } from "@/lib/site-config";
 
 export const dynamic = "force-dynamic";
 
@@ -189,7 +201,7 @@ export default async function ConsolePage({
       {tab === "jobs" ? <JobsTab editId={editId} /> : null}
       {tab === "authors" ? <AuthorsTab editId={editId} /> : null}
       {tab === "pages" ? <PagesTab editId={editId} /> : null}
-      {tab === "areas" ? <AreasTab /> : null}
+      {tab === "areas" ? <AreasTab editId={editId} error={sp.error} /> : null}
       {tab === "legal" ? <LegalTab /> : null}
       {tab === "images" ? <ImagesTab /> : null}
       {tab === "seo" ? <SeoTab /> : null}
@@ -227,8 +239,8 @@ async function HomeTab({ editId }: { editId?: string }) {
     <div className="flex flex-col gap-6">
     <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
       <Card>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          // eslint-disable-next-line @next/next/no-img-element
           src="https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/brand/trg-digital.png"
           alt={TRG.name}
           className="h-6 w-auto"
@@ -503,7 +515,12 @@ async function PostsTab({ editId }: { editId?: string }) {
             </select>
           </label>
           <Area label="Excerpt" name="excerpt" defaultValue={editing?.excerpt} rows={2} />
-          <Area label="Content (HTML)" name="content" defaultValue={editing?.content} rows={8} />
+          <RichField
+            label="Content"
+            name="content"
+            defaultValue={editing?.content}
+            minHeight={340}
+          />
           <Field label="Cover image URL" name="coverImageUrl" defaultValue={editing?.coverImageUrl} />
           <Field label="Cover image alt" name="coverImageAlt" defaultValue={editing?.coverImageAlt} />
           <Field label="Tags (comma-separated)" name="tags" defaultValue={editing?.tags.join(", ")} />
@@ -515,11 +532,8 @@ async function PostsTab({ editId }: { editId?: string }) {
             defaultValue={editing?.canonicalUrl}
             hint="Optional — leave blank to auto-use this page's own URL."
           />
-          <Area
-            label="FAQs (JSON)"
-            name="faqs"
-            hint='[{"question":"…","answer":"…"}]'
-            defaultValue={editing?.faqs ? JSON.stringify(editing.faqs, null, 2) : ""}
+          <FaqEditor
+            defaultValue={editing?.faqs ? JSON.stringify(editing.faqs) : ""}
           />
           <SaveBar editing={!!editing} tab="posts" />
         </form>
@@ -583,45 +597,93 @@ async function AuthorsTab({ editId }: { editId?: string }) {
 
 // ── Pages ────────────────────────────────────────────────────────────────
 async function PagesTab({ editId }: { editId?: string }) {
-  const [pages, editing] = await Promise.all([
-    prisma.sitePage.findMany({ orderBy: { path: "asc" } }),
-    editId
-      ? prisma.sitePage.findUnique({ where: { id: editId } })
-      : Promise.resolve(null),
-  ]);
+  const rows = await prisma.sitePage.findMany({ orderBy: { path: "asc" } });
+  const byPath = new Map(rows.map((r) => [r.path, r]));
+
+  // Every canonical page, plus any saved rows not in the canonical list.
+  const known = new Set(managedPages.map((p) => p.path));
+  const list = [
+    ...managedPages.map((p) => ({
+      path: p.path,
+      title: byPath.get(p.path)?.title ?? p.title,
+      saved: byPath.has(p.path),
+    })),
+    ...rows
+      .filter((r) => !known.has(r.path))
+      .map((r) => ({ path: r.path, title: r.title, saved: true })),
+  ];
+
+  // `editId` here is a page PATH (URL-encoded). Resolve to the saved row, or a
+  // default shape from the canonical list so a not-yet-saved page is editable.
+  const editingPath = editId ? decodeURIComponent(editId) : null;
+  const dbRow = editingPath ? byPath.get(editingPath) : undefined;
+  const def = editingPath
+    ? managedPages.find((p) => p.path === editingPath)
+    : undefined;
+  const editing = editingPath
+    ? {
+        path: editingPath,
+        title: dbRow?.title ?? def?.title ?? "",
+        metaTitle: dbRow?.metaTitle ?? null,
+        metaDescription: dbRow?.metaDescription ?? null,
+        canonicalUrl: dbRow?.canonicalUrl ?? `${siteConfig.url}${editingPath}`,
+        ogImageUrl: dbRow?.ogImageUrl ?? null,
+        published: dbRow?.published ?? true,
+        faqs: dbRow?.faqs ?? null,
+        footer: dbRow?.footer ?? null,
+        saved: !!dbRow,
+      }
+    : null;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
       <Card>
-        <h2 className="mb-3 font-medium">Pages ({pages.length})</h2>
+        <h2 className="mb-1 font-medium">Pages ({list.length})</h2>
+        <p className="mb-3 text-sm text-neutral-500">
+          Every page on the site. &ldquo;Saved&rdquo; pages have custom
+          meta/SEO; &ldquo;Default&rdquo; pages use the built-in values until you
+          edit them. (Legal page wording is managed on the Legal tab.)
+        </p>
         <ul className="divide-y divide-neutral-100 text-sm">
-          {pages.map((pg) => (
-            <li key={pg.id} className="flex items-center justify-between py-2">
-              <span>
+          {list.map((pg) => (
+            <li key={pg.path} className="flex items-center justify-between gap-2 py-2">
+              <span className="truncate">
                 <span className="font-mono text-xs">{pg.path}</span> — {pg.title}
               </span>
               <span className="flex items-center gap-2">
-                <Link href={`?tab=pages&edit=${pg.id}`} prefetch={false} className="underline">
+                <span
+                  className={`rounded px-1.5 py-0.5 text-xs ${
+                    pg.saved
+                      ? "bg-green-100 text-green-700"
+                      : "bg-neutral-100 text-neutral-500"
+                  }`}
+                >
+                  {pg.saved ? "Saved" : "Default"}
+                </span>
+                <Link
+                  href={`?tab=pages&edit=${encodeURIComponent(pg.path)}`}
+                  prefetch={false}
+                  className="underline"
+                >
                   Edit
                 </Link>
-                <form action={deletePage}>
-                  <input type="hidden" name="id" value={pg.id} />
-                  <input type="hidden" name="path" value={pg.path} />
-                  <button className="text-red-600 underline">Delete</button>
-                </form>
+                {pg.saved ? (
+                  <form action={deletePage}>
+                    <input type="hidden" name="path" value={pg.path} />
+                    <button className="text-red-600 underline">Reset</button>
+                  </form>
+                ) : null}
               </span>
             </li>
           ))}
-          {pages.length === 0 ? (
-            <li className="py-2 text-neutral-400">No pages yet.</li>
-          ) : null}
         </ul>
       </Card>
 
       <Card>
-        <h2 className="mb-3 font-medium">{editing ? "Edit page" : "New page"}</h2>
+        <h2 className="mb-3 font-medium">
+          {editing ? `Edit page: ${editing.path}` : "Select a page to edit"}
+        </h2>
         <form action={upsertPage} className="flex flex-col gap-3">
-          {editing ? <input type="hidden" name="id" value={editing.id} /> : null}
           <Field label="Path (e.g. /about/)" name="path" defaultValue={editing?.path} required />
           <Field label="Title" name="title" defaultValue={editing?.title} required />
           <Field label="Meta title" name="metaTitle" defaultValue={editing?.metaTitle} />
@@ -630,7 +692,7 @@ async function PagesTab({ editId }: { editId?: string }) {
             label="Canonical URL"
             name="canonicalUrl"
             defaultValue={editing?.canonicalUrl}
-            hint="Optional — leave blank to auto-use this page's own URL."
+            hint="Pre-filled with this page's own URL. Change only if you need it to point elsewhere."
           />
           <Field label="OG image URL" name="ogImageUrl" defaultValue={editing?.ogImageUrl} />
           <label className="flex items-center gap-2 text-sm">
@@ -641,11 +703,8 @@ async function PagesTab({ editId }: { editId?: string }) {
             />
             Published
           </label>
-          <Area
-            label="FAQs (JSON)"
-            name="faqs"
-            hint='[{"question":"…","answer":"…"}]'
-            defaultValue={editing?.faqs ? JSON.stringify(editing.faqs, null, 2) : ""}
+          <FaqEditor
+            defaultValue={editing?.faqs ? JSON.stringify(editing.faqs) : ""}
           />
           <Area
             label="Footer (JSON)"
@@ -735,96 +794,404 @@ async function ImagesTab() {
 }
 
 // ── Local-area landing pages ─────────────────────────────────────────────────
-async function AreasTab() {
-  const rows = await prisma.areaPage.findMany();
+// Serialise stored area links ([{label, href}]) to the admin's one-per-line "Label | /path/" format.
+function linksToText(v: unknown): string {
+  if (!Array.isArray(v)) return "";
+  return v
+    .filter((l): l is { label: string; href: string } => !!l && typeof l === "object")
+    .map((l) => `${l.label ?? ""} | ${l.href ?? ""}`.trim())
+    .join("\n");
+}
+
+// One collapsible page editor (a built-in combo or an admin-created page). Default closed; stays
+// open after a save/generate via the ?edit= param so the admin lands back on the page they edited.
+function AreaAccordion({
+  path,
+  townName,
+  careName,
+  managed,
+  published,
+  status,
+  keyword,
+  hasRow,
+  values,
+  editId,
+}: {
+  path: string;
+  townName: string;
+  careName: string;
+  managed: boolean;
+  published: boolean;
+  status: string;
+  keyword: string;
+  hasRow: boolean;
+  values: {
+    metaTitle: string;
+    metaDescription: string;
+    heading: string;
+    intro: string;
+    body: string;
+    areasHeading: string;
+    areasBody: string;
+    areasLinks: string;
+    offerPoints: string;
+    faqs: string;
+    careName: string;
+    careNoun: string;
+  };
+  editId?: string;
+}) {
+  const badge =
+    status === "Published"
+      ? "bg-green-100 text-green-700"
+      : status === "Draft"
+        ? "bg-amber-100 text-amber-700"
+        : status === "Saved"
+          ? "bg-blue-100 text-blue-700"
+          : "bg-neutral-100 text-neutral-500";
+  return (
+    <details
+      open={editId === path}
+      className="group overflow-hidden rounded-lg border border-neutral-200 bg-white"
+    >
+      <summary className="flex cursor-pointer items-center justify-between gap-3 px-4 py-3 marker:content-[''] hover:bg-neutral-50">
+        <span className="text-sm font-medium">
+          {careName} in {townName}
+          <a
+            href={path}
+            target="_blank"
+            rel="noopener"
+            className="ml-2 font-mono text-xs text-neutral-400 underline"
+          >
+            {path}
+          </a>
+        </span>
+        <span className="flex items-center gap-3">
+          <span className={`rounded px-1.5 py-0.5 text-xs ${badge}`}>{status}</span>
+          <span className="text-lg text-neutral-400 transition-transform group-open:rotate-45">
+            +
+          </span>
+        </span>
+      </summary>
+
+      <div className="space-y-3 border-t border-neutral-100 px-4 py-4">
+        {/* AI generation from the target keyword */}
+        <form
+          action={generateAreaContent}
+          className="flex flex-wrap items-end gap-2 rounded-lg border border-brand-100 bg-brand-50/40 p-3"
+        >
+          <input type="hidden" name="path" value={path} />
+          <div className="min-w-[240px] flex-1">
+            <Field
+              label="Target keyword"
+              name="targetKeyword"
+              defaultValue={keyword}
+              hint="e.g. residential care home haywards heath"
+            />
+          </div>
+          <button
+            type="submit"
+            className="rounded bg-brand-700 px-3 py-1.5 text-sm text-white"
+          >
+            Generate with AI
+          </button>
+        </form>
+
+        {/* Full content editor */}
+        <form action={managed ? updateAreaPage : upsertArea} className="space-y-3">
+          <input type="hidden" name="path" value={path} />
+          {managed ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Service name" name="careName" defaultValue={values.careName} />
+              <Field
+                label="Service noun (lowercase)"
+                name="careNoun"
+                defaultValue={values.careNoun}
+              />
+            </div>
+          ) : null}
+          <Field label="Meta title" name="metaTitle" defaultValue={values.metaTitle} />
+          <Area
+            label="Meta description"
+            name="metaDescription"
+            rows={2}
+            defaultValue={values.metaDescription}
+          />
+          <Field label="Heading (H1)" name="heading" defaultValue={values.heading} />
+          <RichField label="Intro — hero" name="intro" defaultValue={values.intro} />
+          <RichField
+            label="More about — body"
+            name="body"
+            defaultValue={values.body}
+            minHeight={220}
+          />
+          <Area
+            label="What we offer — one bullet per line"
+            name="offerPoints"
+            rows={5}
+            defaultValue={values.offerPoints}
+          />
+          <FaqEditor defaultValue={values.faqs} />
+          <Field
+            label="Areas we cover — heading"
+            name="areasHeading"
+            defaultValue={values.areasHeading}
+            hint={`Blank uses the default: "${careName} near ${townName}"`}
+          />
+          <RichField
+            label="Areas we cover — description"
+            name="areasBody"
+            defaultValue={values.areasBody}
+          />
+          <Area
+            label="Areas we cover — links (one per line: Label | /path/)"
+            name="areasLinks"
+            rows={6}
+            defaultValue={values.areasLinks}
+          />
+          <p className="-mt-1 text-xs text-neutral-400">
+            One link per line as{" "}
+            <code className="rounded bg-neutral-100 px-1">Label | /path/</code>. Leave
+            blank to auto-generate links to your other live pages for this service.
+            Only link to pages that exist so the links never break.
+          </p>
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <button
+              type="submit"
+              className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
+            >
+              Save changes
+            </button>
+          </div>
+        </form>
+
+        {/* Managed: publish + delete. Built-in: reset the override. */}
+        <div className="flex items-center gap-4 border-t border-neutral-100 pt-3">
+          {managed ? (
+            <>
+              <form action={setAreaPublished}>
+                <input type="hidden" name="path" value={path} />
+                <input
+                  type="hidden"
+                  name="published"
+                  value={published ? "false" : "true"}
+                />
+                <button type="submit" className="text-sm text-brand-700 underline">
+                  {published ? "Unpublish" : "Publish"}
+                </button>
+              </form>
+              <form action={deleteAreaPage}>
+                <input type="hidden" name="path" value={path} />
+                <button type="submit" className="text-sm text-red-600 underline">
+                  Delete page
+                </button>
+              </form>
+            </>
+          ) : hasRow ? (
+            <form action={resetArea}>
+              <input type="hidden" name="path" value={path} />
+              <button type="submit" className="text-sm text-red-600 underline">
+                Reset to default wording
+              </button>
+            </form>
+          ) : (
+            <span className="text-xs text-neutral-400">
+              Built-in page using default wording. Edit or generate to override it.
+            </span>
+          )}
+        </div>
+      </div>
+    </details>
+  );
+}
+
+async function AreasTab({
+  editId,
+  error,
+}: {
+  editId?: string;
+  error?: string;
+}) {
+  const rows = await prisma.areaPage.findMany({ orderBy: { updatedAt: "desc" } });
   const byPath = new Map(rows.map((r) => [r.path, r]));
-  const total = towns.length * careTypes.length;
+
+  // Every live page (built-in combos + managed), for auto-generating the "Areas we cover" links.
+  const livePairs = [
+    ...towns.flatMap((t) =>
+      careTypes.map((c) => ({
+        townSlug: t.slug,
+        townName: t.name,
+        careSlug: c.slug,
+        careName: c.name,
+      })),
+    ),
+    ...rows
+      .filter((r) => r.managed && r.townSlug && r.careSlug)
+      .map((r) => ({
+        townSlug: r.townSlug as string,
+        townName: r.townName ?? (r.townSlug as string),
+        careSlug: r.careSlug as string,
+        careName: r.careName ?? (r.careSlug as string),
+      })),
+  ];
+  // The stored links as text, or the auto cross-links (same service, other towns) if none set.
+  const areaLinksText = (
+    stored: unknown,
+    townSlug: string,
+    careSlug: string,
+    careName: string,
+  ) => {
+    const s = linksToText(stored);
+    if (s) return s;
+    return livePairs
+      .filter((p) => p.careSlug === careSlug && p.townSlug !== townSlug)
+      .map((p) => `${careName} in ${p.townName} | /${p.townSlug}/${p.careSlug}/`)
+      .join("\n");
+  };
+
+  const managedItems = rows
+    .filter((r) => r.managed)
+    .map((r) => {
+      const points = Array.isArray(r.offerPoints) ? (r.offerPoints as string[]) : [];
+      return {
+        path: r.path,
+        townName: r.townName ?? "",
+        careName: r.careName ?? "",
+        managed: true,
+        published: r.published,
+        status: r.published ? "Published" : "Draft",
+        keyword: r.targetKeyword ?? "",
+        hasRow: true,
+        values: {
+          metaTitle: r.metaTitle ?? "",
+          metaDescription: r.metaDescription ?? "",
+          heading: r.heading ?? "",
+          intro: r.intro ?? "",
+          body: r.body ?? "",
+          areasHeading: r.areasHeading ?? "",
+          areasBody:
+            r.areasBody ??
+            defaultAreasBody(
+              r.townName ?? "",
+              r.townSlug ?? "",
+              (r.careNoun ?? r.careName ?? "care").toLowerCase(),
+            ),
+          areasLinks: areaLinksText(
+            r.areasLinks,
+            r.townSlug ?? "",
+            r.careSlug ?? "",
+            r.careName ?? "",
+          ),
+          offerPoints: points.join("\n"),
+          faqs: r.faqs ? JSON.stringify(r.faqs, null, 2) : "",
+          careName: r.careName ?? "",
+          careNoun: r.careNoun ?? "",
+        },
+      };
+    });
+
+  const builtInItems = towns.flatMap((town) =>
+    careTypes.map((care) => {
+      const path = `/${town.slug}/${care.slug}/`;
+      const r = byPath.get(path);
+      const def = defaultAreaContent(town, care);
+      const points = Array.isArray(r?.offerPoints)
+        ? (r!.offerPoints as string[])
+        : care.points;
+      return {
+        path,
+        townName: town.name,
+        careName: care.name,
+        managed: false,
+        published: true,
+        status: r ? "Saved" : "Default",
+        keyword: r?.targetKeyword ?? "",
+        hasRow: !!r,
+        values: {
+          metaTitle: r?.metaTitle ?? "",
+          metaDescription: r?.metaDescription ?? "",
+          heading: r?.heading ?? def.heading,
+          intro: r?.intro ?? def.intro,
+          body: r?.body ?? def.body,
+          areasHeading: r?.areasHeading ?? "",
+          areasBody: r?.areasBody ?? defaultAreasBody(town.name, town.slug, care.noun),
+          areasLinks: areaLinksText(r?.areasLinks, town.slug, care.slug, care.name),
+          offerPoints: (points ?? []).join("\n"),
+          faqs: r?.faqs ? JSON.stringify(r.faqs, null, 2) : "",
+          careName: care.name,
+          careNoun: care.noun,
+        },
+      };
+    }),
+  );
 
   return (
-    <div className="flex flex-col gap-6">
-      <p className="text-sm text-neutral-500">
-        Local-area landing pages ({total}). Edit the heading, intro and
-        &ldquo;more about&rdquo; text for each town &amp; care type. Saved values
-        override the default wording; intro and body are HTML. The rest of each
-        page is templated.
-      </p>
-      {towns.map((town) => (
-        <Card key={town.slug}>
-          <h2 className="mb-3 font-medium">{town.name}</h2>
-          <div className="space-y-4">
-            {careTypes.map((care) => {
-              const path = `/${town.slug}/${care.slug}/`;
-              const row = byPath.get(path);
-              const def = defaultAreaContent(town, care);
-              return (
-                <form
-                  key={path}
-                  action={upsertArea}
-                  className="space-y-2 rounded-lg border border-neutral-200 p-3"
-                >
-                  <input type="hidden" name="path" value={path} />
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium">
-                      {care.name}{" "}
-                      <a
-                        href={path}
-                        target="_blank"
-                        rel="noopener"
-                        className="font-mono text-xs text-neutral-400 underline"
-                      >
-                        {path}
-                      </a>
-                    </span>
-                    <span
-                      className={`rounded px-1.5 py-0.5 text-xs ${
-                        row
-                          ? "bg-green-100 text-green-700"
-                          : "bg-neutral-100 text-neutral-500"
-                      }`}
-                    >
-                      {row ? "Saved" : "Default"}
-                    </span>
-                  </div>
-                  <Field
-                    label="Heading"
-                    name="heading"
-                    defaultValue={row?.heading ?? def.heading}
-                  />
-                  <Area
-                    label="Intro — top of page (HTML)"
-                    name="intro"
-                    rows={3}
-                    defaultValue={row?.intro ?? def.intro}
-                  />
-                  <Area
-                    label="More about — extra paragraphs (HTML)"
-                    name="body"
-                    rows={5}
-                    defaultValue={row?.body ?? def.body}
-                  />
-                  <div className="flex items-center gap-3 pt-1">
-                    <button
-                      type="submit"
-                      className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
-                    >
-                      Save
-                    </button>
-                    {row ? (
-                      <button
-                        type="submit"
-                        formAction={resetArea}
-                        className="text-sm text-red-600 underline"
-                      >
-                        Reset
-                      </button>
-                    ) : null}
-                  </div>
-                </form>
-              );
-            })}
+    <div className="flex flex-col gap-8">
+      {error ? (
+        <div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {decodeURIComponent(error)}
+        </div>
+      ) : null}
+
+      {/* Create a new landing page */}
+      <Card>
+        <h2 className="mb-3 font-medium">Create a landing page</h2>
+        <form action={createAreaPage} className="grid gap-3 sm:grid-cols-2">
+          <Field label="Town / area name" name="townName" required hint="e.g. Cuckfield" />
+          <Field
+            label="Service name"
+            name="careName"
+            required
+            hint="e.g. Dementia Care"
+          />
+          <div className="sm:col-span-2">
+            <Field
+              label="Target keyword (optional)"
+              name="targetKeyword"
+              hint="e.g. dementia care home cuckfield"
+            />
           </div>
-        </Card>
-      ))}
+          <div className="sm:col-span-2">
+            <button
+              type="submit"
+              className="rounded bg-brand-700 px-3 py-1.5 text-sm text-white"
+            >
+              Create page (draft)
+            </button>
+          </div>
+        </form>
+        <p className="mt-2 text-xs text-neutral-400">
+          Creates a draft at /town/service/. Generate the content with AI, edit, and
+          publish. New pages go live with no redeploy.
+        </p>
+      </Card>
+
+      {/* Admin-created pages */}
+      {managedItems.length ? (
+        <div>
+          <h2 className="font-medium">Your landing pages ({managedItems.length})</h2>
+          <div className="mt-3 flex flex-col gap-2">
+            {managedItems.map((it) => (
+              <AreaAccordion key={it.path} {...it} editId={editId} />
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Built-in town x service pages */}
+      <div>
+        <h2 className="font-medium">Built-in area pages ({builtInItems.length})</h2>
+        <p className="mb-3 mt-1 text-sm text-neutral-500">
+          Every town and service. Click a page to expand and edit its meta, content,
+          offer points and FAQs, or Generate with AI. Reset reverts to the default
+          wording.
+        </p>
+        <div className="flex flex-col gap-2">
+          {builtInItems.map((it) => (
+            <AreaAccordion key={it.path} {...it} editId={editId} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -877,11 +1244,11 @@ async function LegalTab() {
                 defaultValue={row?.title ?? def.title}
                 required
               />
-              <Area
-                label="Content (HTML)"
+              <RichField
+                label="Content"
                 name="content"
                 defaultValue={row?.content ?? def.content}
-                rows={16}
+                minHeight={420}
               />
               <div className="flex items-center gap-3 pt-1">
                 <button
@@ -983,7 +1350,7 @@ async function JobsTab({ editId }: { editId?: string }) {
             <Field label="Type (e.g. Full-time)" name="type" defaultValue={editing?.type} />
             <Field label="Hours (e.g. 36 hrs/week)" name="hours" defaultValue={editing?.hours} />
             <Field label="Salary / rate" name="salary" defaultValue={editing?.salary} />
-            <Field label="Location" name="location" defaultValue={editing?.location ?? "Lindfield, West Sussex"} />
+            <Field label="Location" name="location" defaultValue={editing?.location ?? "Crawley, West Sussex"} />
           </div>
           <Field
             label="Summary (one line)"
@@ -1233,14 +1600,66 @@ async function UsersTab({ error }: { error?: string }) {
 }
 
 // ── SEO / site files ─────────────────────────────────────────────────────────
-function SeoTab() {
+async function SeoTab() {
   const files = [
     { label: "Sitemap", href: "/sitemap.xml", desc: "All public URLs, for search engines." },
     { label: "Robots.txt", href: "/robots.txt", desc: "Crawler rules + a pointer to the sitemap." },
     { label: "LLMs.txt", href: "/llms.txt", desc: "A plain-text site summary for AI assistants." },
     { label: "RSS feed", href: "/blog/feed.xml", desc: "The blog feed for readers and aggregators." },
   ];
+  const ogImage = await getSetting("og_image", "").catch(() => "");
   return (
+    <div className="flex flex-col gap-4">
+    <Card>
+      <h2 className="mb-1 font-medium">Social share image</h2>
+      <p className="mb-4 text-sm text-neutral-500">
+        The image shown when your site is shared on Facebook, LinkedIn, X and WhatsApp. Used across the
+        site unless a page has its own. Best size <strong>1200 × 630px</strong> (JPG or PNG).
+      </p>
+      <div className="flex flex-col gap-4 sm:flex-row">
+        <div className="shrink-0">
+          <div className="flex h-[126px] w-[240px] items-center justify-center overflow-hidden rounded border border-neutral-200 bg-neutral-50">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={ogImage || "/opengraph-image.png"}
+              alt="Current social share image"
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <p className="mt-1 text-center text-[11px] text-neutral-400">
+            {ogImage ? "Current image" : "Default image (no custom image set)"}
+          </p>
+        </div>
+        <form action={saveSocialImage} className="flex flex-1 flex-col gap-3">
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-neutral-600">Upload a new image</span>
+            <input type="file" name="file" accept="image/jpeg,image/png,image/webp" className="text-sm" />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-neutral-600">…or paste an image URL</span>
+            <input
+              type="url"
+              name="url"
+              defaultValue={ogImage}
+              placeholder="https://…"
+              className="rounded border border-neutral-300 px-3 py-2 text-sm"
+            />
+            <span className="text-xs text-neutral-400">
+              Uploading a file overrides the URL. Clear the URL and save (with no file) to reset to the default.
+            </span>
+          </label>
+          <div>
+            <button type="submit" className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white">
+              Save social image
+            </button>
+          </div>
+          <p className="text-xs text-neutral-400">
+            After saving, re-share the link or use each platform&apos;s debugger (e.g. LinkedIn Post Inspector)
+            to refresh its cached preview.
+          </p>
+        </form>
+      </div>
+    </Card>
     <Card>
       <h2 className="mb-1 font-medium">SEO &amp; site files</h2>
       <p className="mb-4 text-sm text-neutral-500">
@@ -1266,5 +1685,6 @@ function SeoTab() {
         ))}
       </ul>
     </Card>
+    </div>
   );
 }

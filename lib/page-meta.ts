@@ -5,23 +5,39 @@
 
 import type { Metadata } from "next";
 import { getSitePage } from "@/lib/data/site-pages";
+import { getSetting } from "@/lib/data/settings";
 import { siteConfig } from "@/lib/site-config";
 
 export type MetaFallback = {
   title: string;
   description?: string;
   ogImageUrl?: string;
+  // Use the given title verbatim (no "%s | Site Name" template suffix). For pages that manage
+  // their own full title incl. brand (e.g. area landing pages).
+  titleAbsolute?: boolean;
+  // Skip the SitePage lookup — for routes whose meta lives in another model (e.g. AreaPage).
+  ignoreSitePage?: boolean;
 };
 
 export async function pageMetadata(
   path: string,
   fallback: MetaFallback,
 ): Promise<Metadata> {
-  const page = await getSitePage(path).catch(() => null);
+  const [page, siteOgImage] = await Promise.all([
+    fallback.ignoreSitePage
+      ? Promise.resolve(null)
+      : getSitePage(path).catch(() => null),
+    // Site-wide default social image, set in the admin console (SEO tab).
+    getSetting("og_image", "").catch(() => ""),
+  ]);
 
-  const title = page?.metaTitle ?? page?.title ?? fallback.title;
+  const titleStr = page?.metaTitle ?? page?.title ?? fallback.title;
+  const title = fallback.titleAbsolute ? { absolute: fallback.title } : titleStr;
   const description = page?.metaDescription ?? fallback.description;
-  const ogImage = page?.ogImageUrl ?? fallback.ogImageUrl;
+  // Precedence: this page's own image > the page's code fallback > the
+  // admin-set site image > the built-in /opengraph-image.png.
+  const ogImage =
+    page?.ogImageUrl ?? fallback.ogImageUrl ?? (siteOgImage || undefined);
   const canonical =
     page?.canonicalUrl ?? `${siteConfig.url}${path}`;
 
@@ -30,7 +46,7 @@ export async function pageMetadata(
     description,
     alternates: { canonical },
     openGraph: {
-      title,
+      title: titleStr,
       description,
       url: canonical,
       siteName: siteConfig.name,
