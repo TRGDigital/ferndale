@@ -158,14 +158,14 @@ export default async function HomePage() {
         </Container>
 
         {/* Desktop: image bleeds to the right edge and fades into the blue */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] overflow-hidden [-webkit-mask-image:linear-gradient(to_right,transparent,#000_34%)] [mask-image:linear-gradient(to_right,transparent,#000_34%)] lg:block">
+        <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] overflow-hidden lg:block">
           <SiteImage
             src={heroImage.src}
             fallbackAlt={heroImage.alt}
             fill
             priority
             sizes="58vw"
-            className="hero-zoom object-cover object-center"
+            className="hero-zoom object-cover object-center [-webkit-mask-image:linear-gradient(to_right,transparent,#000_34%)] [mask-image:linear-gradient(to_right,transparent,#000_34%)]"
           />
         </div>
       </Section>

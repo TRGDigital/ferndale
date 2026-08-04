@@ -84,10 +84,12 @@ html.readable {
    so it costs nothing in page speed; stilled for reduced-motion users. */
 @keyframes hero-zoom {
   from { transform: scale(1); }
-  to   { transform: scale(1.07); }
+  to   { transform: scale(1.05); }
 }
 .hero-zoom {
-  animation: hero-zoom 45s ease-in-out infinite alternate;
+  /* Starts after a short delay so the LCP image has fully loaded and settled —
+     otherwise the load swap and the zoom start stack into a perceived jolt. */
+  animation: hero-zoom 60s ease-in-out 1.5s infinite alternate;
   will-change: transform;
 }
 @media (prefers-reduced-motion: reduce) {
