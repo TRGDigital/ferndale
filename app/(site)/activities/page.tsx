@@ -14,13 +14,13 @@ import { WeeklyTimetable } from "@/components/site/WeeklyTimetable";
 import { weeklySchedule, regularVisits } from "@/lib/content/pages";
 
 const heroImage = {
-  src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/activities/resident-smiling.jpg",
-  alt: "A Ferndale resident smiling in her armchair in the bright, homely lounge",
+  src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/activities/exercise-class.jpg",
+  alt: "Residents enjoying a seated exercise class together in the Ferndale activity room",
 };
 
 const weeklyImage = {
-  src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/activities/exercise-class.jpg",
-  alt: "Residents enjoying a seated exercise class together in the Ferndale activity room",
+  src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/activities/resident-smiling.jpg",
+  alt: "A Ferndale resident smiling in her armchair in the bright, homely lounge",
 };
 
 // Elevated card with a soft, brand-tinted shadow for depth (matches the home page).
@@ -110,7 +110,7 @@ export default function ActivitiesPage() {
           </div>
           <div className="mt-8 grid items-start gap-8 lg:grid-cols-[1.2fr_1fr]">
             <WeeklyTimetable schedule={weeklySchedule} />
-            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-brand-100 shadow-[0_12px_34px_-16px_rgba(19,82,113,0.20)]">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-brand-100 shadow-[0_12px_34px_-16px_rgba(19,82,113,0.20)]">
               <SiteImage
                 src={weeklyImage.src}
                 fallbackAlt={weeklyImage.alt}
