@@ -16,7 +16,7 @@ export const siteConfig = {
   officeHours: "Monday to Friday, 9am to 5pm",
   manager: "Ramesh Mannick",
   beds: 28,
-  cqcLocationId: process.env.CQC_LOCATION_ID ?? "1-108317835", // Ferndale Nursing Home, Crawley
+  cqcLocationId: process.env.CQC_LOCATION_ID || "1-108317835", // Ferndale Nursing Home, Crawley (|| so an empty env var cannot blank the live widget)
   address: {
     streetAddress: "124 Malthouse Road",
     addressLocality: "Crawley",
