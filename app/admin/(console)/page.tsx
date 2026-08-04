@@ -45,6 +45,7 @@ import {
   defaultAreasBody,
 } from "@/lib/content/local-areas";
 import { RichField } from "@/components/admin/RichText";
+import { PhotoInput } from "@/components/admin/PhotoInput";
 import { FaqEditor } from "@/components/admin/FaqEditor";
 import { siteConfig } from "@/lib/site-config";
 import { adminPageMeta } from "@/lib/admin-nav";
@@ -535,12 +536,7 @@ async function HomeTab({ editId }: { editId?: string }) {
                   ? "Upload to replace the current photo, or leave blank to keep it."
                   : "A clear, square head-and-shoulders photo works best."}
               </span>
-              <input
-                type="file"
-                name="photo"
-                accept="image/*"
-                className="text-sm"
-              />
+              <PhotoInput name="photo" className="text-sm" />
             </label>
           </div>
           <div className="flex items-center gap-3 pt-1">
@@ -953,18 +949,13 @@ async function GalleryTab({ error }: { error?: string }) {
         <h2 className="mb-1 font-medium">Add a photo</h2>
         <p className="mb-4 text-sm text-neutral-500">
           Upload a photo for the Our Home gallery and give it a clear alt description
-          (read by screen readers and search engines). JPG or PNG, up to about 10MB.
+          (read by screen readers and search engines). Any size — photos are optimised
+          automatically before upload.
         </p>
         <form action={uploadGalleryImage} className="flex flex-col gap-3">
           <label className="flex flex-col gap-1 text-sm">
             <span className="text-neutral-600">Photo</span>
-            <input
-              type="file"
-              name="file"
-              accept="image/*"
-              required
-              className="text-sm file:mr-3 file:rounded file:border-0 file:bg-neutral-900 file:px-3 file:py-1.5 file:text-sm file:text-white"
-            />
+            <PhotoInput name="file" required />
           </label>
           <Field
             label="Alt text (describe the photo)"
@@ -2057,7 +2048,7 @@ async function SeoTab() {
         <form action={saveSocialImage} className="flex flex-1 flex-col gap-3">
           <label className="flex flex-col gap-1 text-sm">
             <span className="text-neutral-600">Upload a new image</span>
-            <input type="file" name="file" accept="image/jpeg,image/png,image/webp" className="text-sm" />
+            <PhotoInput name="file" accept="image/jpeg,image/png,image/webp" className="text-sm" />
           </label>
           <label className="flex flex-col gap-1 text-sm">
             <span className="text-neutral-600">…or paste an image URL</span>
