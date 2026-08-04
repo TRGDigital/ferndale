@@ -42,8 +42,7 @@ export const siteImages: SiteImageEntry[] = [
   { src: `${STORAGE}/site/about/aims.jpg`, alt: "Residents enjoying a lively chair-based activity session with the Ferndale activity leader", location: "About — Our aims section" },
   { src: `${STORAGE}/site/care-team/hero.jpg`, alt: "Ferndale carers chatting and laughing with residents over tea in the sunny lounge", location: "Care Team — hero" },
   { src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/activities/resident-smiling.jpg", alt: "A Ferndale resident smiling in her armchair in the bright, homely lounge", location: "Activities — hero" },
-  { src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/activities/exercise-class.jpg", alt: "Residents enjoying a seated exercise class together in the Ferndale activity room", location: "Activities — coordinator banner" },
-  { src: `${STORAGE}/site/activities/weekly.jpg`, alt: "A smiling Ferndale resident in the lounge", location: "Activities — weekly timetable photo" },
+  { src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/activities/exercise-class.jpg", alt: "Residents enjoying a seated exercise class together in the Ferndale activity room", location: "Activities — weekly timetable photo" },
   { src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/careers/hero-nurse.jpg", alt: "A smiling Ferndale nurse in uniform in the lounge", location: "Careers — hero" },
   { src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/careers/team-nurses.jpg", alt: "Two smiling Ferndale nurses in branded uniforms in the lounge", location: "Careers — application section" },
 

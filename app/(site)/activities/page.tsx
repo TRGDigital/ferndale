@@ -18,19 +18,10 @@ const heroImage = {
   alt: "A Ferndale resident smiling in her armchair in the bright, homely lounge",
 };
 
-const coordinatorImage = {
+const weeklyImage = {
   src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/activities/exercise-class.jpg",
   alt: "Residents enjoying a seated exercise class together in the Ferndale activity room",
 };
-
-const weeklyImage = {
-  src: "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/activities/weekly.jpg",
-  alt: "A smiling Ferndale resident in the lounge",
-};
-
-// A symmetric left+right fade so the banner bleeds into the page on both sides.
-const SIDE_FADE =
-  "linear-gradient(to right, transparent, #000 8%, #000 92%, transparent)";
 
 // Elevated card with a soft, brand-tinted shadow for depth (matches the home page).
 const CARD =
@@ -101,18 +92,6 @@ export default function ActivitiesPage() {
             ))}
           </ul>
         </Container>
-
-        {/* Full-width banner that bleeds into the page on both sides */}
-        <div className="relative mt-12 h-[260px] w-full overflow-hidden sm:h-[340px] lg:h-[440px]">
-          <SiteImage
-            src={coordinatorImage.src}
-            fallbackAlt={coordinatorImage.alt}
-            fill
-            sizes="100vw"
-            className="object-cover"
-            style={{ WebkitMaskImage: SIDE_FADE, maskImage: SIDE_FADE }}
-          />
-        </div>
       </Section>
 
       {/* Full weekly timetable — accordion, one day at a time */}
@@ -131,7 +110,7 @@ export default function ActivitiesPage() {
           </div>
           <div className="mt-8 grid items-start gap-8 lg:grid-cols-[1.2fr_1fr]">
             <WeeklyTimetable schedule={weeklySchedule} />
-            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-brand-100 shadow-[0_12px_34px_-16px_rgba(19,82,113,0.20)]">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-brand-100 shadow-[0_12px_34px_-16px_rgba(19,82,113,0.20)]">
               <SiteImage
                 src={weeklyImage.src}
                 fallbackAlt={weeklyImage.alt}
