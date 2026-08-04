@@ -3,7 +3,7 @@ import { pageMetadata } from "@/lib/page-meta";
 import { Container, Section, Eyebrow } from "@/components/site/ui";
 import { EnquiryProvider, EnquiryButton } from "@/components/site/EnquiryDialog";
 import { Decor } from "@/components/site/decor";
-import { CostEstimator } from "@/components/site/CostEstimator";
+import { ToolEmbed } from "@/components/site/ToolEmbed";
 import { siteConfig } from "@/lib/site-config";
 
 const CARD =
@@ -60,7 +60,7 @@ export default function CostOfCarePage() {
             </div>
 
             <div className={`${CARD} p-6 sm:p-8`}>
-              <CostEstimator />
+              <ToolEmbed tool="cost-estimator" />
             </div>
           </Container>
         </section>

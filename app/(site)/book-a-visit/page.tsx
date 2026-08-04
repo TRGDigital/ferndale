@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/page-meta";
 import { Container, Section, Eyebrow } from "@/components/site/ui";
 import { Decor } from "@/components/site/decor";
-import { BookVisit } from "@/components/site/BookVisit";
+import { ToolEmbed } from "@/components/site/ToolEmbed";
 import { siteConfig } from "@/lib/site-config";
 
 const CARD =
@@ -56,7 +56,7 @@ export default function BookAVisitPage() {
           </div>
 
           <div className={`${CARD} p-6 sm:p-8`}>
-            <BookVisit />
+            <ToolEmbed tool="book-visit" />
           </div>
         </Container>
       </section>

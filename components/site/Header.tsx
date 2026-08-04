@@ -8,10 +8,21 @@ import { primaryNav, headerNav } from "@/lib/nav";
 import { siteConfig } from "@/lib/site-config";
 import { Container, ButtonLink } from "@/components/site/ui";
 import { Icon } from "@/components/site/Icon";
+import { getReviews } from "@/lib/data/reviews";
 
 // Server component. Mobile menu uses native <details> so it works without JS
 // and stays accessible (no focus-trap to manage).
-export function Header() {
+export async function Header() {
+  // Hide the Reviews link until at least one review exists (cache tag `reviews`,
+  // so it appears as soon as the first review is saved in the admin).
+  const hasReviews = (await getReviews().catch(() => [])).length > 0;
+  const nav = headerNav.map((item) =>
+    item.children
+      ? { ...item, children: item.children.filter((c) => c.path !== "/reviews/" || hasReviews) }
+      : item,
+  );
+  const mobileNav = primaryNav.filter((item) => item.path !== "/reviews/" || hasReviews);
+
   return (
     <header className="sticky top-0 z-40 border-b border-brand-100 bg-cream/90 backdrop-blur">
       <Container className="flex items-center justify-between py-2">
@@ -38,7 +49,7 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex" aria-label="Primary">
-          {headerNav.map((item) =>
+          {nav.map((item) =>
             item.children ? (
               <div key={item.path} className="group relative">
                 <Link
@@ -116,7 +127,7 @@ export function Header() {
               Menu
             </summary>
             <div className="absolute right-0 z-50 mt-2 w-60 rounded-lg border border-brand-100 bg-cream p-2 shadow-lg">
-              {primaryNav.map((item) => (
+              {mobileNav.map((item) => (
                 <Link
                   key={item.path}
                   href={item.path}
