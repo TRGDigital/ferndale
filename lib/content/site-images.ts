@@ -44,8 +44,8 @@ export const siteImages: SiteImageEntry[] = [
   { src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/activities/resident-smiling.jpg", alt: "A Ferndale resident smiling in her armchair in the bright, homely lounge", location: "Activities — hero" },
   { src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/activities/exercise-class.jpg", alt: "Residents enjoying a seated exercise class together in the Ferndale activity room", location: "Activities — coordinator banner" },
   { src: `${STORAGE}/site/activities/weekly.jpg`, alt: "A smiling Ferndale resident in the lounge", location: "Activities — weekly timetable photo" },
-  { src: `${STORAGE}/site/careers/hero.jpg`, alt: "A smiling Ferndale carer in the dining room as residents enjoy lunch together", location: "Careers — hero" },
-  { src: `${STORAGE}/site/careers/team.jpg`, alt: "Two smiling Ferndale carers in uniform in the dining room", location: "Careers — application section" },
+  { src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/careers/hero-nurse.jpg", alt: "A smiling Ferndale nurse in uniform in the lounge", location: "Careers — hero" },
+  { src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/careers/team-nurses.jpg", alt: "Two smiling Ferndale nurses in branded uniforms in the lounge", location: "Careers — application section" },
 
   // Accreditation badges
   { src: `${STORAGE}/site/badges/cqc-good.png`, alt: "CQC rated Good", location: "Badges — trust band & Welcome" },

@@ -32,13 +32,13 @@ const CARD_HOVER =
   "transition duration-200 hover:-translate-y-1 hover:shadow-[0_22px_44px_-18px_rgba(19,82,113,0.30)]";
 
 const heroImage = {
-  src: "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/careers/hero.jpg",
-  alt: "A smiling Ferndale carer in the dining room as residents enjoy lunch together",
+  src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/careers/hero-nurse.jpg",
+  alt: "A smiling Ferndale nurse in uniform in the lounge",
 };
 
 const teamImage = {
-  src: "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/careers/team.jpg",
-  alt: "Two smiling Ferndale carers in uniform in the dining room",
+  src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/careers/team-nurses.jpg",
+  alt: "Two smiling Ferndale nurses in branded uniforms in the lounge",
 };
 
 const applicationSteps = [
