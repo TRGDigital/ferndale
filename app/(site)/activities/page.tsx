@@ -14,13 +14,13 @@ import { WeeklyTimetable } from "@/components/site/WeeklyTimetable";
 import { weeklySchedule, regularVisits } from "@/lib/content/pages";
 
 const heroImage = {
-  src: "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/activities/hero.jpg",
-  alt: "Residents laughing together during a balloon exercise activity in the Ferndale lounge",
+  src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/activities/resident-smiling.jpg",
+  alt: "A Ferndale resident smiling in her armchair in the bright, homely lounge",
 };
 
 const coordinatorImage = {
-  src: "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/activities/coordinator.jpg",
-  alt: "Residents, families and staff enjoying the annual summer BBQ in the Ferndale garden",
+  src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/activities/exercise-class.jpg",
+  alt: "Residents enjoying a seated exercise class together in the Ferndale activity room",
 };
 
 const weeklyImage = {
