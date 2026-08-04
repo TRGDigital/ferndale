@@ -190,8 +190,8 @@ export const accreditationBadges = [
 ];
 
 export const localAreaImage = {
-  src: "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/local/lindfield.jpg",
-  alt: "Crawley, West Sussex, close to Gatwick and well connected across Mid Sussex",
+  src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/local/crawley-park.jpg",
+  alt: "The lake at a leafy Crawley park close to Ferndale, with trees reflected in the water",
 };
 
 export const localArea = {
