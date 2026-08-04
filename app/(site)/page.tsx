@@ -165,8 +165,11 @@ export default async function HomePage() {
             fill
             priority
             sizes="58vw"
-            className="hero-zoom object-cover object-center [-webkit-mask-image:linear-gradient(to_right,transparent,#000_34%)] [mask-image:linear-gradient(to_right,transparent,#000_34%)]"
+            className="hero-zoom object-cover object-center"
           />
+          {/* Static fade into the hero background — replaces the old mask so the
+              animated image itself carries no mask (Safari snaps masked animations). */}
+          <div className="absolute inset-y-0 left-0 w-[34%] bg-gradient-to-r from-brand-50 to-brand-50/0" aria-hidden />
         </div>
       </Section>
 
