@@ -144,32 +144,29 @@ export default async function HomePage() {
             ) : null}
 
             {/* Mobile: full-bleed image below the text */}
-            <div className="-mx-6 mt-10 overflow-hidden lg:hidden">
+            <div className="-mx-6 mt-10 lg:hidden">
               <SiteImage
                 src={heroImage.src}
                 fallbackAlt={heroImage.alt}
                 width={1800}
                 height={1142}
                 priority
-                className="hero-zoom w-full object-cover"
+                className="w-full object-cover"
               />
             </div>
           </div>
         </Container>
 
         {/* Desktop: image bleeds to the right edge and fades into the blue */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] overflow-hidden lg:block">
+        <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] lg:block">
           <SiteImage
             src={heroImage.src}
             fallbackAlt={heroImage.alt}
             fill
             priority
             sizes="58vw"
-            className="hero-zoom object-cover object-center"
+            className="object-cover object-center [-webkit-mask-image:linear-gradient(to_right,transparent,#000_34%)] [mask-image:linear-gradient(to_right,transparent,#000_34%)]"
           />
-          {/* Static fade into the hero background — replaces the old mask so the
-              animated image itself carries no mask (Safari snaps masked animations). */}
-          <div className="absolute inset-y-0 left-0 w-[34%] bg-gradient-to-r from-brand-50 to-brand-50/0" aria-hidden />
         </div>
       </Section>
 
