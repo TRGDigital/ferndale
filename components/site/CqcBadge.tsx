@@ -7,7 +7,7 @@ import { ManagedImg } from "@/components/ManagedImg";
 // so there's no boxed iframe. Display-only (hard rule #4): never JSON-LD.
 
 const CQC_LOGO =
-  "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/badges/cqc-logo.png";
+  "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/badges/cqc-logo.png";
 
 const RATING_COLOUR: Record<string, string> = {
   outstanding: "text-emerald-700",
