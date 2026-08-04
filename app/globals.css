@@ -79,3 +79,17 @@ html.readable {
 .prose :is(h2, h3) {
   scroll-margin-top: 6rem;
 }
+
+/* Hero: a subtle, slow Ken Burns-style zoom on the static hero photo. Pure CSS,
+   so it costs nothing in page speed; stilled for reduced-motion users. */
+@keyframes hero-zoom {
+  from { transform: scale(1); }
+  to   { transform: scale(1.07); }
+}
+.hero-zoom {
+  animation: hero-zoom 45s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-zoom { animation: none; }
+}
