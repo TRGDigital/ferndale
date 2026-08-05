@@ -34,7 +34,13 @@ export const siteConfig = {
   },
   // Guide fees for /fees/ + LocalBusiness price schema. UNSET until Len confirms
   // Ferndale's public guide figures; everything fee-related renders only when set.
-  fees: undefined as
+  fees: {
+    priceRange: "£1,500 to £1,700 per week",
+    offers: [
+      { name: "Nursing care", minPrice: 1500, maxPrice: 1700, note: "depending on room and care needs" },
+      { name: "Respite care", price: 1600, note: "per week, for planned short stays" },
+    ],
+  } as
     | {
         priceRange: string;
         offers: { name: string; price?: number; minPrice?: number; maxPrice?: number; note?: string }[];

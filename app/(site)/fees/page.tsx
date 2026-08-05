@@ -7,6 +7,8 @@ import { EnquiryProvider, EnquiryButton } from "@/components/site/EnquiryDialog"
 import { Icon } from "@/components/site/Icon";
 import { chipAccent, Decor } from "@/components/site/decor";
 import { siteConfig } from "@/lib/site-config";
+import { JsonLd } from "@/components/JsonLd";
+import { feesSchema } from "@/lib/schema";
 
 const CARD =
   "rounded-2xl border border-brand-100 bg-white shadow-[0_12px_34px_-16px_rgba(19,82,113,0.20)]";
@@ -81,6 +83,7 @@ export default function FeesPage() {
   return (
     <EnquiryProvider>
       <main>
+        <JsonLd data={feesSchema()} />
         {/* Hero */}
         <Section className="bg-brand-50">
           <Container className="max-w-3xl">
@@ -166,6 +169,66 @@ export default function FeesPage() {
             </div>
             <div className="mt-7">
               <EnquiryButton variant="solid">Ask about our fees</EnquiryButton>
+            </div>
+          </Container>
+        </Section>
+
+        {/* Guide fees + how they compare locally */}
+        <Section className="bg-brand-50">
+          <Container className="max-w-4xl">
+            <Eyebrow>Our guide fees</Eyebrow>
+            <h2 className="text-3xl font-semibold text-brand-700">
+              Ferndale fees at a glance
+            </h2>
+            <p className="mt-4 max-w-2xl leading-relaxed text-ink/80">
+              These are our guide fees. Your exact fee depends on the room you choose
+              and the nursing care you need, and we will always confirm it clearly
+              after a free, no obligation assessment.
+            </p>
+            <div className="mt-8 grid gap-5 sm:grid-cols-2">
+              <div className={`${CARD} p-7`}>
+                <p className="text-sm font-semibold uppercase tracking-wide text-terracotta-600">
+                  Nursing care
+                </p>
+                <p className="mt-2 text-3xl font-semibold text-brand-700">
+                  £1,500 to £1,700
+                  <span className="text-base font-normal text-muted"> per week</span>
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-muted">
+                  Depending on room and care needs, including dementia and
+                  Parkinson&rsquo;s care.
+                </p>
+              </div>
+              <div className={`${CARD} p-7`}>
+                <p className="text-sm font-semibold uppercase tracking-wide text-terracotta-600">
+                  Respite care
+                </p>
+                <p className="mt-2 text-3xl font-semibold text-brand-700">
+                  £1,600
+                  <span className="text-base font-normal text-muted"> per week</span>
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-muted">
+                  For planned short stays and recovery after a hospital stay.
+                </p>
+              </div>
+            </div>
+
+            <div className={`${CARD} mt-6 p-7`}>
+              <h3 className="text-lg font-semibold text-brand-700">
+                How that compares around Crawley
+              </h3>
+              <p className="mt-3 leading-relaxed text-ink/80">
+                Across the South East, the average nursing home fee in 2026 is around
+                £1,706 a week, rising to about £1,721 a week for nursing dementia
+                care, with the UK average at £1,535 a week. Ferndale sits at or below
+                the local going rate, with the reassurance of a family run home,
+                round the clock registered nurses and a Good CQC rating.
+              </p>
+              <p className="mt-3 text-xs text-muted">
+                Regional averages from 2026 industry figures published by
+                carehome.co.uk and Lottie. Every home prices differently, so always
+                compare what is included in the fee.
+              </p>
             </div>
           </Container>
         </Section>
