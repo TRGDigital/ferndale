@@ -79,3 +79,8 @@ html.readable {
 .prose :is(h2, h3) {
   scroll-margin-top: 6rem;
 }
+
+/* Pulsing dot for the live room-availability badge (AvailabilityBadgeServer). */
+@keyframes trgav-ping {
+  75%, 100% { transform: scale(2.4); opacity: 0; }
+}

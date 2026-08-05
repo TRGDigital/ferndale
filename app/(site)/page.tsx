@@ -18,7 +18,7 @@ import {
 import { Icon } from "@/components/site/Icon";
 import { CHIP_ACCENTS, DOT_ACCENTS, Decor } from "@/components/site/decor";
 import { ContactForm } from "@/components/site/ContactForm";
-import { AvailabilityBadge } from "@/components/site/AvailabilityBadge";
+import { AvailabilityBadgeServer } from "@/components/site/AvailabilityBadgeServer";
 import { tools } from "@/lib/content/tools";
 import { homeFaqs } from "@/lib/content/home-faqs";
 import { welcome, whyChooseUs, heroImage } from "@/lib/content/home";
@@ -119,7 +119,7 @@ export default async function HomePage() {
         <Container className="relative z-10 flex items-center">
           <div className="max-w-xl">
             <div className="mb-4">
-              <AvailabilityBadge />
+              <AvailabilityBadgeServer />
             </div>
             <Eyebrow>Nursing Care in Crawley</Eyebrow>
             <h1 className="text-4xl font-semibold leading-tight text-brand-700 sm:text-5xl">

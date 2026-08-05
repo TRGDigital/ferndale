@@ -7,7 +7,6 @@ import { EnquiryProvider, EnquiryButton } from "@/components/site/EnquiryDialog"
 import { siteConfig } from "@/lib/site-config";
 import { Decor } from "@/components/site/decor";
 import { SiteImage } from "@/components/SiteImage";
-import { AvailabilityBadge } from "@/components/site/AvailabilityBadge";
 import { LocationMap } from "@/components/site/LocationMap";
 import { heroImage } from "@/lib/content/home";
 import {
@@ -210,13 +209,11 @@ export default async function AreaLandingPage({ params }: Params) {
             : []),
         ]}
       />
-      {/* Hero — home-style bleed image, availability badge, editable heading + intro */}
+      {/* Hero — home-style bleed image, editable heading + intro. The live
+          availability badge is rendered site-wide from the layout (shared spot). */}
       <section className="relative overflow-hidden bg-brand-50 py-16 sm:py-20 lg:min-h-[460px]">
         <Container className="relative z-10 flex items-center">
           <div className="max-w-xl">
-            <div className="mb-4">
-              <AvailabilityBadge />
-            </div>
             <Eyebrow>
               {care.name} · {town.name}
             </Eyebrow>
