@@ -1256,6 +1256,7 @@ function AreaAccordion({
     faqs: string;
     careName: string;
     careNoun: string;
+    notes: string;
   };
   editId?: string;
 }) {
@@ -1319,6 +1320,15 @@ function AreaAccordion({
         {/* Full content editor */}
         <form action={managed ? updateAreaPage : upsertArea} className="space-y-3">
           <input type="hidden" name="path" value={path} />
+          <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3">
+            <Area
+              label="Internal notes (private — only you see these, never shown on the site)"
+              name="notes"
+              rows={3}
+              defaultValue={values.notes}
+              hint="Jot down what you changed on this page, for your own reference. Saved when you save the page."
+            />
+          </div>
           {managed ? (
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Service name" name="careName" defaultValue={values.careName} />
@@ -1506,6 +1516,7 @@ async function AreasTab({
           faqs: r.faqs ? JSON.stringify(r.faqs, null, 2) : "",
           careName: r.careName ?? "",
           careNoun: r.careNoun ?? "",
+          notes: r.notes ?? "",
         },
       };
     });
@@ -1557,6 +1568,7 @@ async function AreasTab({
           faqs: r?.faqs ? JSON.stringify(r.faqs, null, 2) : "",
           careName: care.name,
           careNoun: care.noun,
+          notes: r?.notes ?? "",
         },
       };
     }),

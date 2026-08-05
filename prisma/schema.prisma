@@ -104,6 +104,7 @@ model AreaPage {
   areasLinks      Json? // [{ label, href }] — the grid of nearby links; falls back to auto cross-links
   offerPoints     Json? // string[] — "What we offer" bullets; falls back to the care-type default
   faqs            Json? // [{ question, answer }]
+  notes           String? // internal admin notes / reminders, never shown on the site
   updatedAt       DateTime @updatedAt
   createdAt       DateTime @default(now())
 }

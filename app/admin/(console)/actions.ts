@@ -286,6 +286,7 @@ export async function upsertArea(fd: FormData) {
       ? (offerPoints as unknown as Prisma.InputJsonValue)
       : Prisma.JsonNull,
     faqs: jsonField(fd, "faqs"),
+    notes: optStr(fd, "notes"),
   };
   // A built-in combo override (managed stays false). Use Reset to revert to the code default.
   await prisma.areaPage.upsert({
@@ -396,6 +397,7 @@ export async function updateAreaPage(fd: FormData) {
         ? (offerPoints as unknown as Prisma.InputJsonValue)
         : Prisma.JsonNull,
       faqs: jsonField(fd, "faqs"),
+      notes: optStr(fd, "notes"),
     },
   });
   revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
