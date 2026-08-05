@@ -46,7 +46,7 @@ export const siteConfig = {
         offers: { name: string; price?: number; minPrice?: number; maxPrice?: number; note?: string }[];
       }
     | undefined,
-  accreditations: ["RNHA", "Food Hygiene Rating", "carehome.co.uk Recommended"],
+  accreditations: ["National Care Association", "Food Hygiene Rating", "carehome.co.uk Recommended"],
   // This site's slug in the TRG platform (trgdigital.co.uk/admin/websites),
   // used to read platform-managed settings such as the read-aloud welcome.
   platformSlug: "ferndale-nursing-home",

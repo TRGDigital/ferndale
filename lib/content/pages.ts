@@ -128,7 +128,7 @@ const BADGES = "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/publi
 export const welcomeImages = [
   { src: `${BADGES}/cqc-good.png`, alt: "CQC rated Good" },
   { src: `${BADGES}/food-hygiene.png`, alt: "Food Hygiene Rating" },
-  { src: `${BADGES}/rnha.png`, alt: "Registered Nursing Home Association member" },
+  { src: `${BADGES}/national-care-association.svg`, alt: "National Care Association member" },
 ];
 
 // ── New home-page sections (not from the old site) ──────────────────────────
@@ -175,7 +175,7 @@ export const garden = {
 
 export const accreditations = [
   "CQC rated Good",
-  "RNHA member",
+  "National Care Association member",
   "Food Hygiene Rating",
   "carehome.co.uk recommended",
 ];
@@ -185,9 +185,15 @@ export const accreditations = [
 export const accreditationBadges = [
   { src: `${BADGES}/cqc-good.png`, alt: "CQC rated Good" },
   { src: `${BADGES}/food-hygiene.png`, alt: "Food Hygiene Rating" },
-  { src: `${BADGES}/rnha.png`, alt: "Registered Nursing Home Association member" },
+  { src: `${BADGES}/national-care-association.svg`, alt: "National Care Association member" },
   { src: `${BADGES}/carehome.png`, alt: "Recommended on carehome.co.uk" },
 ];
+
+// Food Hygiene Rating 5 (Very Good) badge, shown in the footer.
+export const foodHygieneBadge = {
+  src: `${BADGES}/food-hygiene-rating-5.png`,
+  alt: "Food Hygiene Rating 5 (Very Good), Food Standards Agency",
+};
 
 export const localAreaImage = {
   src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/local/crawley-park.jpg",

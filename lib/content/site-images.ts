@@ -49,7 +49,7 @@ export const siteImages: SiteImageEntry[] = [
   // Accreditation badges
   { src: `${STORAGE}/site/badges/cqc-good.png`, alt: "CQC rated Good", location: "Badges — trust band & Welcome" },
   { src: `${STORAGE}/site/badges/food-hygiene.png`, alt: "Food Hygiene Rating", location: "Badges — trust band & Welcome" },
-  { src: `${STORAGE}/site/badges/rnha.png`, alt: "Registered Nursing Home Association member", location: "Badges — trust band & Welcome" },
+  { src: `${STORAGE}/site/badges/national-care-association.svg`, alt: "National Care Association member", location: "Badges — trust band & Welcome" },
   { src: `${STORAGE}/site/badges/carehome.png`, alt: "Recommended on carehome.co.uk", location: "Badges — trust band" },
 
   // Team photos

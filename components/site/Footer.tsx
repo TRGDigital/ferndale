@@ -9,6 +9,8 @@ import { primaryNav } from "@/lib/nav";
 import { Container } from "@/components/site/ui";
 import { CqcBadge } from "@/components/site/CqcBadge";
 import { CookieSettingsButton } from "@/components/site/CookieSettingsButton";
+import { ManagedImg } from "@/components/ManagedImg";
+import { foodHygieneBadge } from "@/lib/content/pages";
 
 // Footer driven by siteConfig defaults (SitePage `footer` overrides can be
 // layered in later). The live CQC badge lands here in Step 10 — placeholder now.
@@ -74,6 +76,12 @@ export function Footer() {
               <li key={a}>{a}</li>
             ))}
           </ul>
+          <ManagedImg
+            src={foodHygieneBadge.src}
+            fallbackAlt={foodHygieneBadge.alt}
+            loading="lazy"
+            className="mt-4 h-auto w-44"
+          />
           {/* Display-only CQC rating (never in JSON-LD — hard rule #4). */}
           <CqcBadge />
         </div>
