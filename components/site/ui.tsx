@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SiteImage } from "@/components/SiteImage";
+import { AvailabilityBadgeServer } from "@/components/site/AvailabilityBadgeServer";
 
 export function Container({
   children,
@@ -72,6 +73,9 @@ export function PageHeader({
 }) {
   const text = (
     <div>
+      <div className="mb-4">
+        <AvailabilityBadgeServer />
+      </div>
       {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
       <h1 className="text-4xl font-semibold leading-tight text-brand-700">
         {title}

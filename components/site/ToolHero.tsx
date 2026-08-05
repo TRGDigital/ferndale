@@ -1,6 +1,7 @@
 import { Container, ButtonLink, Eyebrow } from "@/components/site/ui";
 import { Decor } from "@/components/site/decor";
 import { ToolEmbed } from "@/components/site/ToolEmbed";
+import { AvailabilityBadgeServer } from "@/components/site/AvailabilityBadgeServer";
 
 const CARD =
   "rounded-2xl border border-brand-100 bg-white shadow-[0_12px_34px_-16px_rgba(19,82,113,0.20)]";
@@ -24,6 +25,9 @@ export function ToolHero({
       <Decor tone="cool" />
       <Container className="relative z-10 grid items-start gap-10 lg:grid-cols-2">
         <div className="max-w-xl lg:sticky lg:top-24">
+          <div className="mb-4">
+            <AvailabilityBadgeServer />
+          </div>
           <Eyebrow>{eyebrow}</Eyebrow>
           <h1 className="text-4xl font-semibold leading-tight text-brand-700 sm:text-5xl">
             {title}

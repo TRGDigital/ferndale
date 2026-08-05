@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AvailabilityBadgeServer } from "@/components/site/AvailabilityBadgeServer";
 import Link from "next/link";
 import { pageMetadata } from "@/lib/page-meta";
 import { Container, Section, Eyebrow } from "@/components/site/ui";
@@ -83,6 +84,9 @@ export default function FeesPage() {
         {/* Hero */}
         <Section className="bg-brand-50">
           <Container className="max-w-3xl">
+            <div className="mb-4">
+              <AvailabilityBadgeServer />
+            </div>
             <Eyebrow>Paying for care</Eyebrow>
             <h1 className="text-4xl font-semibold leading-tight text-brand-700 sm:text-5xl">
               Fees &amp; funding

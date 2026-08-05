@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AvailabilityBadgeServer } from "@/components/site/AvailabilityBadgeServer";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { pageMetadata } from "@/lib/page-meta";
@@ -214,6 +215,9 @@ export default async function AreaLandingPage({ params }: Params) {
       <section className="relative overflow-hidden bg-brand-50 py-16 sm:py-20 lg:min-h-[460px]">
         <Container className="relative z-10 flex items-center">
           <div className="max-w-xl">
+            <div className="mb-4">
+              <AvailabilityBadgeServer />
+            </div>
             <Eyebrow>
               {care.name} · {town.name}
             </Eyebrow>

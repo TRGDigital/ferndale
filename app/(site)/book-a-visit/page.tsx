@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AvailabilityBadgeServer } from "@/components/site/AvailabilityBadgeServer";
 import { pageMetadata } from "@/lib/page-meta";
 import { Container, Section, Eyebrow } from "@/components/site/ui";
 import { Decor } from "@/components/site/decor";
@@ -29,6 +30,9 @@ export default function BookAVisitPage() {
         <Decor tone="cool" />
         <Container className="relative z-10 grid items-start gap-10 lg:grid-cols-2">
           <div className="max-w-xl lg:sticky lg:top-24">
+            <div className="mb-4">
+              <AvailabilityBadgeServer />
+            </div>
             <Eyebrow>Come and see us</Eyebrow>
             <h1 className="text-4xl font-semibold leading-tight text-brand-700 sm:text-5xl">
               Book a visit to Ferndale

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AvailabilityBadgeServer } from "@/components/site/AvailabilityBadgeServer";
 import { pageMetadata } from "@/lib/page-meta";
 import { Container, Section, Eyebrow } from "@/components/site/ui";
 import { EnquiryProvider, EnquiryButton } from "@/components/site/EnquiryDialog";
@@ -51,6 +52,9 @@ export default async function OurHomePage() {
         {/* Hero */}
         <Section className="bg-brand-50">
           <Container className="max-w-3xl">
+            <div className="mb-4">
+              <AvailabilityBadgeServer />
+            </div>
             <Eyebrow>Our home · Crawley</Eyebrow>
             <h1 className="text-4xl font-semibold leading-tight text-brand-700 sm:text-5xl">
               Take a look around Ferndale
