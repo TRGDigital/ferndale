@@ -35,7 +35,10 @@ const CARD =
 const CARD_HOVER =
   "transition duration-200 hover:-translate-y-1 hover:shadow-[0_22px_44px_-18px_rgba(19,82,113,0.30)]";
 const PROSE =
-  "[&_a]:font-medium [&_a]:text-brand-700 [&_a]:underline [&_ul]:list-disc [&_ul]:pl-6";
+  "[&_a]:font-medium [&_a]:text-brand-700 [&_a]:underline [&_ul]:list-disc [&_ul]:pl-6 " +
+  "[&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-brand-700 " +
+  "[&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-brand-700 " +
+  "[&_h4]:mt-5 [&_h4]:text-lg [&_h4]:font-semibold [&_h4]:text-brand-700";
 
 // Funding tools on the site — linked from every landing page (relevant to families researching
 // care, and useful internal links for SEO).
@@ -148,7 +151,12 @@ export default async function AreaLandingPage({ params }: Params) {
   const blurb =
     care.blurb ||
     `Warm, family-run ${care.noun} from Ferndale Nursing Home in ${baseTown}, West Sussex.`;
-  const points = care.points;
+  // Admin-saved "What we offer" bullets win over the code defaults, for built-in
+  // combos too (previously only managed pages read the override).
+  const points =
+    row?.offerPoints && Array.isArray(row.offerPoints) && row.offerPoints.length
+      ? (row.offerPoints as string[])
+      : care.points;
   const faqs = row?.faqs ?? null;
 
   // The full set of existing pages (code combos + managed) so cross-links never 404.
