@@ -84,3 +84,7 @@ html.readable {
 @keyframes trgav-ping {
   75%, 100% { transform: scale(2.4); opacity: 0; }
 }
+
+/* Hide the layout-level availability badge on the homepage, which renders its
+   own copy in the hero. Applies before first paint, so no flash. */
+body:has([data-home]) .avail-shared { display: none; }

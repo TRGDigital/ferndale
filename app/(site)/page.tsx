@@ -111,7 +111,7 @@ export default async function HomePage() {
   const directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${lat}%2C${lon}`;
 
   return (
-    <main>
+    <main data-home>
       <JsonLd data={faqPageSchema(faqs, `${siteConfig.url}/`)} />
 
       {/* Hero — photo bleeds into the section background */}

@@ -4,7 +4,6 @@ import { CookieConsent } from "@/components/site/CookieConsent";
 import { AccessibilityBar } from "@/components/site/AccessibilityBar";
 import { AgentTools } from "@/components/site/AgentTools";
 import { AvailabilityBadgeServer } from "@/components/site/AvailabilityBadgeServer";
-import { HideOnHome } from "@/components/site/HideOnHome";
 import { Container } from "@/components/site/ui";
 import { getSetting } from "@/lib/data/settings";
 import { siteConfig } from "@/lib/site-config";
@@ -57,13 +56,15 @@ export default async function SiteLayout({
       </div>
 
       <Header />
-      {/* Live room-availability badge on every page except the homepage (which
-          carries it in its hero). SSR so the count is crawlable. */}
-      <HideOnHome>
+      {/* Live room-availability badge, server-rendered on every page so the count
+          is in the HTML for crawlers. The homepage carries its own copy in the
+          hero, so this shared copy is hidden there via CSS — body:has([data-home])
+          in globals.css — which applies before first paint (no flash, no JS). */}
+      <div className="avail-shared">
         <Container className="pt-6">
           <AvailabilityBadgeServer />
         </Container>
-      </HideOnHome>
+      </div>
       <div id="main-content" className="flex-1">
         {children}
       </div>
