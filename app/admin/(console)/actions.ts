@@ -306,6 +306,20 @@ export async function resetArea(fd: FormData) {
   redirect("/admin/?tab=areas");
 }
 
+/** Admin-only "Page updated" tracker toggle for an area page. Upserts a row so
+ *  built-in combos (which may not have a row yet) can be flagged too. Does not
+ *  touch page content, so it never changes what the page shows. */
+export async function setAreaPageUpdated(path: string, updated: boolean) {
+  await requireAdmin();
+  if (!path) return;
+  await prisma.areaPage.upsert({
+    where: { path },
+    update: { pageUpdated: updated },
+    create: { path, pageUpdated: updated },
+  });
+  revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
+}
+
 // ── Admin-created landing pages (managed = true, a town x service the code lists don't define) ──
 
 function slugify(s: string): string {

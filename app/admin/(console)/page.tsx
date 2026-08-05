@@ -33,6 +33,7 @@ import {
   deleteReview,
   saveReviewsUrl,
 } from "./actions";
+import { AreaUpdatedToggle } from "./AreaUpdatedToggle";
 import { getSetting } from "@/lib/data/settings";
 import { getAdminSession, envAdminEmails } from "@/lib/auth";
 import { siteImages } from "@/lib/content/site-images";
@@ -1226,6 +1227,7 @@ function AreaAccordion({
   careName,
   managed,
   published,
+  pageUpdated,
   status,
   keyword,
   hasRow,
@@ -1237,6 +1239,7 @@ function AreaAccordion({
   careName: string;
   managed: boolean;
   published: boolean;
+  pageUpdated: boolean;
   status: string;
   keyword: string;
   hasRow: boolean;
@@ -1282,6 +1285,7 @@ function AreaAccordion({
           </a>
         </span>
         <span className="flex items-center gap-3">
+          <AreaUpdatedToggle path={path} initial={pageUpdated} />
           <span className={`rounded px-1.5 py-0.5 text-xs ${badge}`}>{status}</span>
           <span className="text-lg text-neutral-400 transition-transform group-open:rotate-45">
             +
@@ -1474,6 +1478,7 @@ async function AreasTab({
         careName: r.careName ?? "",
         managed: true,
         published: r.published,
+        pageUpdated: r.pageUpdated,
         status: r.published ? "Published" : "Draft",
         keyword: r.targetKeyword ?? "",
         hasRow: true,
@@ -1519,7 +1524,24 @@ async function AreasTab({
         careName: care.name,
         managed: false,
         published: true,
-        status: r ? "Saved" : "Default",
+        pageUpdated: r?.pageUpdated ?? false,
+        // "Saved" only when there is real content override, so a row that exists
+        // purely because it was flagged "Page updated" still reads as "Default".
+        status:
+          r &&
+          (r.metaTitle ||
+            r.metaDescription ||
+            r.heading ||
+            r.intro ||
+            r.body ||
+            r.targetKeyword ||
+            r.areasHeading ||
+            r.areasBody ||
+            r.areasLinks ||
+            r.offerPoints ||
+            r.faqs)
+            ? "Saved"
+            : "Default",
         keyword: r?.targetKeyword ?? "",
         hasRow: !!r,
         values: {

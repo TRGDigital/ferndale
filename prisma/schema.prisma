@@ -87,6 +87,7 @@ model AreaPage {
   // overrides for a code-defined combo and leave the town/service fields null.
   managed         Boolean  @default(false)
   published       Boolean  @default(true)
+  pageUpdated     Boolean  @default(false) // admin-only tracker: has Len refreshed this page?
   townSlug        String?
   townName        String?
   careSlug        String?
