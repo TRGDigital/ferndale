@@ -5,11 +5,15 @@
 //        <JsonLd data={[webSiteSchema(), siteNavigationSchema(nav)]} />
 
 type JsonLdProps = {
-  data: Record<string, unknown> | Record<string, unknown>[];
+  // null/undefined entries are skipped, so conditional builders can be passed directly.
+  data: Record<string, unknown> | (Record<string, unknown> | null)[] | null;
 };
 
 export function JsonLd({ data }: JsonLdProps) {
-  const items = Array.isArray(data) ? data : [data];
+  const items = (Array.isArray(data) ? data : [data]).filter(
+    (d): d is Record<string, unknown> => !!d,
+  );
+  if (!items.length) return null;
   return (
     <>
       {items.map((item, i) => (

@@ -3,6 +3,8 @@ import { AvailabilityBadgeServer } from "@/components/site/AvailabilityBadgeServ
 import { pageMetadata } from "@/lib/page-meta";
 import { Container, Section, Eyebrow } from "@/components/site/ui";
 import { EnquiryProvider, EnquiryButton } from "@/components/site/EnquiryDialog";
+import { JsonLd } from "@/components/JsonLd";
+import { reviewsSchema } from "@/lib/schema";
 import { getReviews, getReviewStats } from "@/lib/data/reviews";
 import { getSetting } from "@/lib/data/settings";
 
@@ -70,6 +72,9 @@ export default async function ReviewsPage() {
   return (
     <EnquiryProvider>
       <main>
+        <JsonLd
+          data={reviewsSchema(reviews, { name: "carehome.co.uk", url: reviewsUrl })}
+        />
         <Section className="bg-brand-50">
           <Container className="max-w-3xl">
             <div className="mb-4">

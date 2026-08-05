@@ -32,6 +32,14 @@ export const siteConfig = {
     locality: "Lindfield",
     url: "https://www.crosswayscarehome.co.uk/",
   },
+  // Guide fees for /fees/ + LocalBusiness price schema. UNSET until Len confirms
+  // Ferndale's public guide figures; everything fee-related renders only when set.
+  fees: undefined as
+    | {
+        priceRange: string;
+        offers: { name: string; price?: number; minPrice?: number; maxPrice?: number; note?: string }[];
+      }
+    | undefined,
   accreditations: ["RNHA", "Food Hygiene Rating", "carehome.co.uk Recommended"],
   // This site's slug in the TRG platform (trgdigital.co.uk/admin/websites),
   // used to read platform-managed settings such as the read-aloud welcome.

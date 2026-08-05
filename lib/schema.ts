@@ -40,6 +40,67 @@ export function organizationSchema() {
       "@type": "Place",
       name,
     })),
+    ...(siteConfig.fees ? { priceRange: siteConfig.fees.priceRange } : {}),
+  };
+}
+
+/** Guide-fee offers for the /fees/ page — mirrors the visible fee table exactly. */
+export function feesSchema() {
+  if (!siteConfig.fees) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": ["LocalBusiness", "Organization"],
+    "@id": ORG_ID,
+    name: siteConfig.name,
+    priceRange: siteConfig.fees.priceRange,
+    makesOffer: siteConfig.fees.offers.map((o) => ({
+      "@type": "Offer",
+      name: o.name,
+      priceCurrency: "GBP",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        priceCurrency: "GBP",
+        ...("price" in o && o.price != null ? { price: o.price } : {}),
+        ...("minPrice" in o && o.minPrice != null ? { minPrice: o.minPrice } : {}),
+        ...("maxPrice" in o && o.maxPrice != null ? { maxPrice: o.maxPrice } : {}),
+        unitText: "per week",
+      },
+    })),
+  };
+}
+
+/** Family reviews for the /reviews/ page. These are USER reviews curated from
+ * carehome.co.uk (each Review carries its source publisher) — NOT the CQC rating,
+ * which stays display-only per hard rule #4. The aggregate is computed only from
+ * the reviews actually shown on the page, so markup mirrors visible content. */
+export function reviewsSchema(
+  reviews: { author: string; rating: number; title: string | null; body: string; reviewDate: string | Date | null }[],
+  source: { name: string; url: string },
+) {
+  if (!reviews.length) return null;
+  const avg = reviews.reduce((n, r) => n + r.rating, 0) / reviews.length;
+  return {
+    "@context": "https://schema.org",
+    "@type": ["LocalBusiness", "Organization"],
+    "@id": ORG_ID,
+    name: siteConfig.name,
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: Number(avg.toFixed(1)),
+      bestRating: 5,
+      reviewCount: reviews.length,
+    },
+    review: reviews.map((r) => ({
+      "@type": "Review",
+      author: { "@type": "Person", name: r.author },
+      ...(r.reviewDate
+        ? { datePublished: new Date(r.reviewDate).toISOString().slice(0, 10) }
+        : {}),
+      ...(r.title ? { name: r.title } : {}),
+      reviewBody: r.body,
+      reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5 },
+      publisher: { "@type": "Organization", name: source.name, url: source.url },
+    })),
   };
 }
 
