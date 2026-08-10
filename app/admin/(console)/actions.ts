@@ -629,14 +629,24 @@ export async function resendLead(fd: FormData) {
   const id = str(fd, "id");
   const lead = await prisma.lead.findUnique({ where: { id } });
   const webhook = process.env.LEAD_WEBHOOK_URL;
-  if (lead && webhook) {
-    await fetch(webhook, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ...lead, createdAt: lead.createdAt, resent: true }),
-    }).catch(() => {});
+  // Report the real outcome (don't silently claim success) so a failed
+  // notification is visible per lead.
+  let sent: "1" | "err" | "nowebhook" = "err";
+  if (!webhook) {
+    sent = "nowebhook";
+  } else if (lead) {
+    try {
+      const res = await fetch(webhook, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...lead, createdAt: lead.createdAt, resent: true }),
+      });
+      sent = res.ok ? "1" : "err";
+    } catch {
+      sent = "err";
+    }
   }
-  redirect("/admin/?tab=leads&sent=1");
+  redirect(`/admin/?tab=leads&sent=${sent}`);
 }
 
 // ── admin users (master only) ────────────────────────────────────────────────

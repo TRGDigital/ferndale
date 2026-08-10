@@ -1879,9 +1879,17 @@ async function LeadsTab({ sent }: { sent?: string }) {
         CV download.
       </p>
       
-      {sent ? (
+      {sent === "1" ? (
         <p className="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
           Lead notification re-sent.
+        </p>
+      ) : sent === "nowebhook" ? (
+        <p className="mb-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
+          Couldn&rsquo;t re-send: no email webhook (LEAD_WEBHOOK_URL) is configured.
+        </p>
+      ) : sent ? (
+        <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+          Couldn&rsquo;t re-send &mdash; the email service returned an error. Check that SendGrid is active, then try again.
         </p>
       ) : null}
       <ul className="space-y-4">
