@@ -621,6 +621,24 @@ export async function deleteLead(fd: FormData) {
   redirect("/admin/?tab=leads");
 }
 
+// Re-fire the lead-notification webhook for an existing lead — used to deliver a
+// notification that failed the first time (e.g. while the email account was
+// suspended). Same payload the public lead route sends.
+export async function resendLead(fd: FormData) {
+  await requireAdmin();
+  const id = str(fd, "id");
+  const lead = await prisma.lead.findUnique({ where: { id } });
+  const webhook = process.env.LEAD_WEBHOOK_URL;
+  if (lead && webhook) {
+    await fetch(webhook, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...lead, createdAt: lead.createdAt, resent: true }),
+    }).catch(() => {});
+  }
+  redirect("/admin/?tab=leads&sent=1");
+}
+
 // ── admin users (master only) ────────────────────────────────────────────────
 
 export async function createAdminUser(fd: FormData) {

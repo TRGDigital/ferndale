@@ -21,6 +21,7 @@ import {
   generateAreaContent,
   updateLeadStatus,
   deleteLead,
+  resendLead,
   createAdminUser,
   deleteAdminUser,
   upsertTeamMember,
@@ -179,7 +180,7 @@ function Card({
 export default async function ConsolePage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; edit?: string; error?: string }>;
+  searchParams: Promise<{ tab?: string; edit?: string; error?: string; sent?: string }>;
 }) {
   const sp = await searchParams;
   const session = await getAdminSession();
@@ -201,7 +202,7 @@ export default async function ConsolePage({
       </div>
 
       {tab === "home" ? <HomeTab editId={editId} /> : null}
-      {tab === "leads" ? <LeadsTab /> : null}
+      {tab === "leads" ? <LeadsTab sent={sp.sent} /> : null}
       {tab === "posts" ? <PostsTab editId={editId} /> : null}
       {tab === "jobs" ? <JobsTab editId={editId} /> : null}
       {tab === "authors" ? <AuthorsTab editId={editId} /> : null}
@@ -1864,7 +1865,7 @@ function fmtDateTime(d: Date) {
   }).format(d);
 }
 
-async function LeadsTab() {
+async function LeadsTab({ sent }: { sent?: string }) {
   const leads = await prisma.lead.findMany({
     orderBy: { createdAt: "desc" },
     take: 200,
@@ -1877,6 +1878,12 @@ async function LeadsTab() {
         Enquiries, brochure requests and job applications. Applications include a
         CV download.
       </p>
+      
+      {sent ? (
+        <p className="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
+          Lead notification re-sent.
+        </p>
+      ) : null}
       <ul className="space-y-4">
         {leads.map((l) => {
           const meta = (l.meta ?? {}) as {
@@ -1954,6 +1961,10 @@ async function LeadsTab() {
                     ))}
                   </select>
                   <button className="text-xs underline">Update</button>
+                </form>
+                <form action={resendLead}>
+                  <input type="hidden" name="id" value={l.id} />
+                  <button className="text-xs text-teal-700 underline">Resend email</button>
                 </form>
                 <form action={deleteLead}>
                   <input type="hidden" name="id" value={l.id} />
