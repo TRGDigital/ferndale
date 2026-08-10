@@ -4,6 +4,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
+import { sendLeadNotification } from "@/lib/lead-email";
 
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 5;
@@ -84,7 +85,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Optional: notify an email/CRM endpoint. Never block the response on it.
+  // Email the owner directly via SendGrid. Never block the response on it.
+  void sendLeadNotification(lead);
+
+  // Optional: also notify an email/CRM endpoint if a webhook is configured.
   const webhook = process.env.LEAD_WEBHOOK_URL;
   if (webhook) {
     void fetch(webhook, {

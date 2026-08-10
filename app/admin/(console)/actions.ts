@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { requireAdmin, requireMaster } from "@/lib/auth";
+import { sendLeadNotification } from "@/lib/lead-email";
 import { revalidateTags } from "@/lib/revalidate";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { generateAreaLandingContent } from "@/lib/ai/area-content";
@@ -628,23 +629,12 @@ export async function resendLead(fd: FormData) {
   await requireAdmin();
   const id = str(fd, "id");
   const lead = await prisma.lead.findUnique({ where: { id } });
-  const webhook = process.env.LEAD_WEBHOOK_URL;
-  // Report the real outcome (don't silently claim success) so a failed
-  // notification is visible per lead.
-  let sent: "1" | "err" | "nowebhook" = "err";
-  if (!webhook) {
-    sent = "nowebhook";
-  } else if (lead) {
-    try {
-      const res = await fetch(webhook, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...lead, createdAt: lead.createdAt, resent: true }),
-      });
-      sent = res.ok ? "1" : "err";
-    } catch {
-      sent = "err";
-    }
+  // Send the notification directly via SendGrid, and report the real outcome
+  // (reason code) so a failure is visible per lead rather than silently "sent".
+  let sent = "err";
+  if (lead) {
+    const r = await sendLeadNotification(lead);
+    sent = r.ok ? "1" : (r.reason ?? "err");
   }
   redirect(`/admin/?tab=leads&sent=${sent}`);
 }

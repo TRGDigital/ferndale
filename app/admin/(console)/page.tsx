@@ -1883,13 +1883,21 @@ async function LeadsTab({ sent }: { sent?: string }) {
         <p className="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
           Lead notification re-sent.
         </p>
-      ) : sent === "nowebhook" ? (
+      ) : sent === "nokey" ? (
         <p className="mb-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
-          Couldn&rsquo;t re-send: no email webhook (LEAD_WEBHOOK_URL) is configured.
+          Couldn&rsquo;t re-send: <code>SENDGRID_API_KEY</code> is not set in this project&rsquo;s Vercel environment.
+        </p>
+      ) : sent === "nofrom" ? (
+        <p className="mb-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
+          Couldn&rsquo;t re-send: <code>SENDGRID_FROM</code> (a verified sender address) is not set.
+        </p>
+      ) : sent === "noto" ? (
+        <p className="mb-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
+          Couldn&rsquo;t re-send: no recipients configured (set <code>LEAD_NOTIFY_EMAILS</code> or <code>ADMIN_EMAILS</code>).
         </p>
       ) : sent ? (
         <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-          Couldn&rsquo;t re-send &mdash; the email service returned an error. Check that SendGrid is active, then try again.
+          Couldn&rsquo;t re-send &mdash; SendGrid returned an error. Check the API key is valid and the sender is verified.
         </p>
       ) : null}
       <ul className="space-y-4">

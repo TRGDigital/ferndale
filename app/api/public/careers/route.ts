@@ -7,6 +7,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { prisma } from "@/lib/db";
+import { sendLeadNotification } from "@/lib/lead-email";
 
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 5;
@@ -120,6 +121,8 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
+
+  void sendLeadNotification(lead);
 
   const webhook = process.env.LEAD_WEBHOOK_URL;
   if (webhook) {
