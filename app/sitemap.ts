@@ -10,6 +10,7 @@ const STATIC_PATHS = [
   "/",
   "/about-us/",
   "/care-team/",
+  "/areas-we-serve/",
   "/activities/",
   "/careers/",
   "/contact-us/",

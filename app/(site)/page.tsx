@@ -20,6 +20,7 @@ import { CHIP_ACCENTS, DOT_ACCENTS, Decor } from "@/components/site/decor";
 import { ContactForm } from "@/components/site/ContactForm";
 import { AvailabilityBadgeServer } from "@/components/site/AvailabilityBadgeServer";
 import { tools } from "@/lib/content/tools";
+import { getAreasWeServe, primaryTownHref } from "@/lib/content/areas-index";
 import { homeFaqs } from "@/lib/content/home-faqs";
 import { welcome, whyChooseUs, heroImage } from "@/lib/content/home";
 import { getTeam } from "@/lib/data/team";
@@ -103,6 +104,7 @@ export default async function HomePage() {
   const gallery = await getGalleryImages(9).catch(() => []);
   const featuredReviews = await getFeaturedReviews().catch(() => []);
   const ourHomeGallery = await getOurHomeGallery().catch(() => []);
+  const areas = await getAreasWeServe().catch(() => []);
 
   // Full-width OpenStreetMap embed (no API key, no cookies).
   const { latitude: lat, longitude: lon } = siteConfig.geo;
@@ -550,6 +552,41 @@ export default async function HomePage() {
             <div className="mt-6">
               <ButtonLink href="/blog/" variant="secondary">
                 Read our news &amp; blog
+              </ButtonLink>
+            </div>
+          </Container>
+        </Section>
+      ) : null}
+
+      {/* Areas we serve — internal links into the local landing pages */}
+      {areas.length ? (
+        <Section className="bg-white">
+          <Container>
+            <div className="max-w-2xl">
+              <Eyebrow>Areas we serve</Eyebrow>
+              <h2 className="mt-1 text-3xl font-semibold text-brand-700">
+                Nursing &amp; dementia care across West Sussex
+              </h2>
+              <p className="mt-3 text-muted">
+                Based in Crawley, close to Gatwick and within easy reach of families
+                across West Sussex and east Surrey. Find the care you need in your area.
+              </p>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {areas.map((town) => (
+                <Link
+                  key={town.townSlug}
+                  href={primaryTownHref(town)}
+                  className={`${CARD} ${CARD_HOVER} inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-brand-700`}
+                >
+                  <Icon name="home" />
+                  {town.townName}
+                </Link>
+              ))}
+            </div>
+            <div className="mt-8">
+              <ButtonLink href="/areas-we-serve/" variant="secondary">
+                View all areas we serve
               </ButtonLink>
             </div>
           </Container>
