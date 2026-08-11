@@ -20,7 +20,7 @@ const CARD_HOVER =
   "transition duration-200 hover:-translate-y-1 hover:shadow-[0_22px_44px_-18px_rgba(19,82,113,0.30)]";
 
 const heroImage = {
-  src: "https://trmwjilicdxgrzbwzchf.supabase.co/storage/v1/object/public/blog/site/care-team/hero.jpg",
+  src: "https://nuxsbykzkivbjtkhheph.supabase.co/storage/v1/object/public/blog/site/care-team/hero.jpg",
   alt: "Ferndale carers chatting and laughing with residents over tea in the sunny lounge",
 };
 
