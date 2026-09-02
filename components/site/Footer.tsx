@@ -84,6 +84,23 @@ export function Footer() {
           />
           {/* Display-only CQC rating (never in JSON-LD — hard rule #4). */}
           <CqcBadge />
+          {/* Live "Listed on CareAssura" badge, served by CareAssura so it stays current. */}
+          <a
+            href="https://careassura.com/nursing-home/west-sussex/crawley/ferndale-nursing-home?utm_source=badge&utm_medium=listed"
+            title="Ferndale Nursing Home on CareAssura"
+            className="mt-4 inline-block"
+            rel="noopener"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://careassura.com/api/badge?home_id=250eac47-70dd-4257-93f6-8e890306a0a2&type=listed"
+              alt="Ferndale Nursing Home on CareAssura"
+              width={442}
+              height={76}
+              loading="lazy"
+              className="h-auto w-full max-w-[300px] border-0"
+            />
+          </a>
         </div>
 
         <div className="text-sm">
