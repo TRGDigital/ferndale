@@ -12,6 +12,7 @@ const STATIC_PATHS = [
   "/care-team/",
   "/areas-we-serve/",
   "/activities/",
+  "/referrers/",
   "/careers/",
   "/contact-us/",
   "/tools/",

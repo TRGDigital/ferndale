@@ -10,6 +10,7 @@ const corePages: { path: string; title: string }[] = [
   { path: "/about-us/", title: "About Us" },
   { path: "/care-team/", title: "Care Team" },
   { path: "/activities/", title: "Activities" },
+  { path: "/referrers/", title: "Information for Referrers" },
   { path: "/tools/", title: "Tools" },
   { path: "/funding-calculator/", title: "Care Funding Calculator" },
   { path: "/deferred-payment-calculator/", title: "Deferred Payment Calculator" },

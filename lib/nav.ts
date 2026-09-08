@@ -13,6 +13,7 @@ export const primaryNav = [
   { name: "Fees & Funding", path: "/fees/", icon: "calculator" },
   { name: "Areas We Serve", path: "/areas-we-serve/", icon: "home" },
   { name: "Activities", path: "/activities/" },
+  { name: "Referrers", path: "/referrers/" },
   { name: "Tools", path: "/tools/" },
   { name: "Careers", path: "/careers/" },
   { name: "Blog", path: "/blog/" },
@@ -39,6 +40,7 @@ export const headerNav: NavNode[] = [
     ],
   },
   { name: "Activities", path: "/activities/" },
+  { name: "Referrers", path: "/referrers/" },
   {
     name: "Tools",
     path: "/tools/",
