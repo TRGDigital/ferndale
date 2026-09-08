@@ -31,12 +31,29 @@ async function getAvailability(): Promise<Availability | null> {
   }
 }
 
-export async function AvailabilityBadgeServer({ className }: { className?: string }) {
+export async function AvailabilityBadgeServer({
+  className,
+  showWhenFull = false,
+}: {
+  className?: string;
+  /** Also render when the home is full.
+   *
+   *  Marketing pages hide the badge when there is no room, which is right: an empty
+   *  "currently full" chip beside a call to action reads badly. The referrers page is the
+   *  opposite case. A discharge coordinator asking whether there is a bed is served just as
+   *  well by a straight "currently full" as by a yes, and far better than by silence, which
+   *  they have to spend a phone call to resolve.
+   *
+   *  Still renders nothing when the platform returns no label at all: better to say nothing
+   *  than to invent a state the home has not published. */
+  showWhenFull?: boolean;
+}) {
   const d = await getAvailability();
-  if (!d || !d.show) return null;
+  if (!d) return null;
+  if (!d.show && !(showWhenFull && d.label)) return null;
 
   const c = d.color || "#16a34a";
-  const live = d.status === "available" || d.status === "limited";
+  const live = d.show && (d.status === "available" || d.status === "limited");
 
   return (
     <span
