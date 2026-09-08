@@ -257,16 +257,6 @@ function readFaqs(value: unknown): Faq[] {
   return ok.length ? ok : REFERRER_FAQS;
 }
 
-// Marks a detail Len still has to confirm, so the preview is honest about what is
-// real and what is standing in. Remove the flag once the value is confirmed.
-function ToConfirm() {
-  return (
-    <span className="ml-2 inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 align-middle text-[11px] font-medium text-amber-800">
-      To confirm
-    </span>
-  );
-}
-
 export default async function ReferrersPage() {
   const [page, reviews, team] = await Promise.all([
     getSitePage("/referrers/"),
@@ -559,12 +549,10 @@ export default async function ReferrersPage() {
                       <Icon name="clipboard" />
                     </span>
                     <span>
-                      <dt className="font-medium text-ink">
-                        Response time
-                        <ToConfirm />
-                      </dt>
+                      <dt className="font-medium text-ink">What happens next</dt>
                       <dd className="text-muted">
-                        We aim to respond to every referral within one working day.
+                        We confirm we have your referral, then tell you whether we can meet
+                        the person&rsquo;s needs.
                       </dd>
                     </span>
                   </div>
@@ -726,11 +714,10 @@ export default async function ReferrersPage() {
                 <span className={`inline-flex rounded-xl p-3 ring-1 ${chipAccent(1)}`}>
                   <Icon name="clipboard" />
                 </span>
-                <h3 className="mt-4 text-lg font-semibold text-brand-700">
-                  Home administrator
-                  <ToConfirm />
-                </h3>
-                <p className="text-sm text-muted">Admissions paperwork and funding</p>
+                <h3 className="mt-4 text-lg font-semibold text-brand-700">Aoife</h3>
+                <p className="text-sm text-muted">
+                  Home Administrator, admissions paperwork and funding
+                </p>
                 <p className="mt-3 text-sm leading-relaxed text-muted">
                   Contracts, funding confirmations, invoices and admission paperwork.
                 </p>
