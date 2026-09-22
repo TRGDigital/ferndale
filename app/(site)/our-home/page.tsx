@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import { pageBreadcrumbs, imageGallerySchema } from "@/lib/schema";
 import { AvailabilityBadgeServer } from "@/components/site/AvailabilityBadgeServer";
 import { pageMetadata } from "@/lib/page-meta";
 import { Container, Section, Eyebrow } from "@/components/site/ui";
@@ -49,6 +51,7 @@ export default async function OurHomePage() {
   return (
     <EnquiryProvider>
       <main>
+        <JsonLd data={[pageBreadcrumbs("/our-home/"), imageGallerySchema(images)]} />
         {/* Hero */}
         <Section className="bg-brand-50">
           <Container className="max-w-3xl">

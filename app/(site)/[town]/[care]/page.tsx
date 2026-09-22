@@ -24,7 +24,6 @@ import { getAreaPage, getManagedAreaPages } from "@/lib/data/area-pages";
 import { getPublishedPosts } from "@/lib/data/blog";
 import { JsonLd } from "@/components/JsonLd";
 import {
-  organizationSchema,
   areaServiceSchema,
   breadcrumbSchema,
   faqPageSchema,
@@ -202,7 +201,7 @@ export default async function AreaLandingPage({ params }: Params) {
     <main>
       <JsonLd
         data={[
-          organizationSchema(),
+          // The business itself is already output site-wide by the root layout.
           areaServiceSchema({
             path,
             serviceName: care.name,

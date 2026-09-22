@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import { pageBreadcrumbs } from "@/lib/schema";
 import { pageMetadata } from "@/lib/page-meta";
 import { Container, Section, ButtonLink, Eyebrow } from "@/components/site/ui";
 import { ToolHero } from "@/components/site/ToolHero";
@@ -17,6 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function LocalCouncilFundingPage() {
   return (
     <main>
+      <JsonLd data={pageBreadcrumbs("/local-council-funding/")} />
       <ToolHero
         eyebrow="Paying for care"
         title="Local council & funding"

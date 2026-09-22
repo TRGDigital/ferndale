@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import { pageBreadcrumbs, careTeamSchema } from "@/lib/schema";
 import { pageMetadata } from "@/lib/page-meta";
 import {
   Container,
@@ -36,6 +38,7 @@ export default async function CareTeamPage() {
   const careTeam = await getTeam();
   return (
     <main>
+      <JsonLd data={[pageBreadcrumbs("/care-team/"), careTeamSchema(careTeam)]} />
       <PageHeader
         eyebrow="Care Team"
         title="A long-standing team of exceptional people"

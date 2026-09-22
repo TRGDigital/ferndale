@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import { pageBreadcrumbs } from "@/lib/schema";
 import { pageMetadata } from "@/lib/page-meta";
 import { Container, Section, ButtonLink, Eyebrow } from "@/components/site/ui";
 import { Icon } from "@/components/site/Icon";
@@ -54,6 +56,7 @@ const FUNDING_OPTIONS = [
 export default function FundingCalculatorPage() {
   return (
     <main>
+      <JsonLd data={pageBreadcrumbs("/funding-calculator/")} />
       <ToolHero
         eyebrow="Paying for care"
         title="Care funding calculator"

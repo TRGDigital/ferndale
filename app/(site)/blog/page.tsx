@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import { pageBreadcrumbs } from "@/lib/schema";
 import { getPublishedPosts } from "@/lib/data/blog";
 import { pageMetadata } from "@/lib/page-meta";
 import { siteConfig } from "@/lib/site-config";
@@ -37,6 +39,7 @@ export default async function BlogIndexPage() {
 
   return (
     <main>
+      <JsonLd data={pageBreadcrumbs("/blog/")} />
       <PageHeader
         eyebrow="News & Blog"
         title="Life at Ferndale"

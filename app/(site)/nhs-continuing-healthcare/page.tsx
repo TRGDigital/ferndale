@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import { pageBreadcrumbs } from "@/lib/schema";
 import { pageMetadata } from "@/lib/page-meta";
 import { Container, Section, ButtonLink, Eyebrow } from "@/components/site/ui";
 import { ToolHero } from "@/components/site/ToolHero";
@@ -14,6 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function ContinuingHealthcarePage() {
   return (
     <main>
+      <JsonLd data={pageBreadcrumbs("/nhs-continuing-healthcare/")} />
       <ToolHero
         eyebrow="NHS funding"
         title="NHS Continuing Healthcare checker"

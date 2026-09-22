@@ -8,7 +8,7 @@ import { Icon } from "@/components/site/Icon";
 import { chipAccent, Decor } from "@/components/site/decor";
 import { siteConfig } from "@/lib/site-config";
 import { JsonLd } from "@/components/JsonLd";
-import { feesSchema } from "@/lib/schema";
+import { feesSchema, pageBreadcrumbs } from "@/lib/schema";
 
 const CARD =
   "rounded-2xl border border-brand-100 bg-white shadow-[0_12px_34px_-16px_rgba(19,82,113,0.20)]";
@@ -83,6 +83,7 @@ export default function FeesPage() {
   return (
     <EnquiryProvider>
       <main>
+        <JsonLd data={pageBreadcrumbs("/fees/")} />
         <JsonLd data={feesSchema()} />
         {/* Hero */}
         <Section className="bg-brand-50">
