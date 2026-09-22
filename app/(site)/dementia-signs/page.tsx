@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import { pageBreadcrumbs } from "@/lib/schema";
 import { pageMetadata } from "@/lib/page-meta";
 import { Container, Section, ButtonLink, Eyebrow } from "@/components/site/ui";
 import { Icon } from "@/components/site/Icon";
@@ -44,6 +46,7 @@ const POINTS = [
 export default function DementiaSignsPage() {
   return (
     <main>
+      <JsonLd data={pageBreadcrumbs("/dementia-signs/")} />
       <ToolHero
         eyebrow="Dementia support"
         title="Dementia signs checklist"

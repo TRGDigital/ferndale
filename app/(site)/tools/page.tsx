@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import { pageBreadcrumbs } from "@/lib/schema";
 import Link from "next/link";
 import { pageMetadata } from "@/lib/page-meta";
 import { Container, Section, PageHeader } from "@/components/site/ui";
@@ -22,6 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function ToolsPage() {
   return (
     <main>
+      <JsonLd data={pageBreadcrumbs("/tools/")} />
       <PageHeader
         eyebrow="Tools"
         title="Helpful tools"

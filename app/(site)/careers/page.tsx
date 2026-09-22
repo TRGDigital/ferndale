@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import { pageBreadcrumbs } from "@/lib/schema";
 import { SiteImage } from "@/components/SiteImage";
 import { pageMetadata } from "@/lib/page-meta";
 import {
@@ -102,6 +104,7 @@ export default async function CareersPage() {
 
   return (
     <main>
+      <JsonLd data={pageBreadcrumbs("/careers/")} />
       <PageHeader
         eyebrow="Careers"
         title="Careers with Ferndale"

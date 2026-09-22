@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import { pageBreadcrumbs } from "@/lib/schema";
 import { notFound } from "next/navigation";
 import { Container, Section, PageHeader } from "@/components/site/ui";
 import { pageMetadata } from "@/lib/page-meta";
@@ -34,6 +36,7 @@ export async function LegalView({ slug }: { slug: string }) {
 
   return (
     <main>
+      <JsonLd data={pageBreadcrumbs(`/${slug}/`, page.title)} />
       <PageHeader eyebrow="Legal" title={page.title} />
       <Section>
         <Container className="max-w-3xl">

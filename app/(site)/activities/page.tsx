@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import { pageBreadcrumbs } from "@/lib/schema";
 import { SiteImage } from "@/components/SiteImage";
 import { pageMetadata } from "@/lib/page-meta";
 import {
@@ -50,6 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function ActivitiesPage() {
   return (
     <main>
+      <JsonLd data={pageBreadcrumbs("/activities/")} />
       <PageHeader
         eyebrow="Activities"
         title="Fun, interaction and exercise, every day"

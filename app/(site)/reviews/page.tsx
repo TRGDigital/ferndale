@@ -4,7 +4,7 @@ import { pageMetadata } from "@/lib/page-meta";
 import { Container, Section, Eyebrow } from "@/components/site/ui";
 import { EnquiryProvider, EnquiryButton } from "@/components/site/EnquiryDialog";
 import { JsonLd } from "@/components/JsonLd";
-import { reviewsSchema } from "@/lib/schema";
+import { reviewsSchema, pageBreadcrumbs } from "@/lib/schema";
 import { getReviews, getReviewStats } from "@/lib/data/reviews";
 import { getSetting } from "@/lib/data/settings";
 
@@ -72,6 +72,7 @@ export default async function ReviewsPage() {
   return (
     <EnquiryProvider>
       <main>
+        <JsonLd data={pageBreadcrumbs("/reviews/")} />
         <JsonLd
           data={reviewsSchema(reviews, { name: "carehome.co.uk", url: reviewsUrl })}
         />

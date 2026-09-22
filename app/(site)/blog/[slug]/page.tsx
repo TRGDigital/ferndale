@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getPostBySlug, getPublishedSlugs } from "@/lib/data/blog";
 import { pageMetadata } from "@/lib/page-meta";
 import { JsonLd } from "@/components/JsonLd";
-import { blogPostingSchema, faqPageSchema, type Faq } from "@/lib/schema";
+import { blogPostingSchema, faqPageSchema, pageBreadcrumbs, type Faq } from "@/lib/schema";
 import { siteConfig } from "@/lib/site-config";
 import { processBlogContent } from "@/lib/blog-content";
 import { splitHtmlForCtas } from "@/lib/blog-cta";
@@ -76,6 +76,7 @@ export default async function BlogPostPage({
       <JsonLd
         data={[
           blogPostingSchema(post),
+          pageBreadcrumbs(`/blog/${post.slug}/`, post.title, { name: "Blog", path: "/blog/" }),
           ...(faqs.length ? [faqPageSchema(faqs, url)] : []),
         ]}
       />

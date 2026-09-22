@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import { pageBreadcrumbs } from "@/lib/schema";
 import { AvailabilityBadgeServer } from "@/components/site/AvailabilityBadgeServer";
 import { pageMetadata } from "@/lib/page-meta";
 import { Container, Section, Eyebrow } from "@/components/site/ui";
@@ -28,6 +30,7 @@ export default function IsItTimeForCarePage() {
   return (
     <EnquiryProvider>
       <main>
+        <JsonLd data={pageBreadcrumbs("/is-it-time-for-care/")} />
         <section className="relative bg-brand-50 py-16 sm:py-20">
           <Decor tone="cool" />
           <Container className="relative z-10 grid items-start gap-10 lg:grid-cols-2">

@@ -7,7 +7,7 @@ export const siteConfig = {
   legalName: "Ferndale Healthcare Limited",
   url: process.env.SITE_URL ?? "https://ferndale.vercel.app",
   description:
-    "Ferndale Nursing Home in Crawley, West Sussex — warm, person-centred " +
+    "Ferndale Nursing Home in Crawley, West Sussex, providing warm, person-centred " +
     "24-hour nursing care, including specialist dementia and Parkinson's care, plus respite.",
   telephone: "01293 520368",
   telephoneE164: "+441293520368",

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import { pageBreadcrumbs, contactPageSchema } from "@/lib/schema";
 import { pageMetadata } from "@/lib/page-meta";
 import { siteConfig } from "@/lib/site-config";
 import { Container, Section, PageHeader } from "@/components/site/ui";
@@ -57,6 +59,7 @@ export default function ContactPage() {
 
   return (
     <main>
+      <JsonLd data={[pageBreadcrumbs("/contact-us/"), contactPageSchema()]} />
       <PageHeader
         eyebrow="Contact Us"
         title="We’d love to hear from you"
