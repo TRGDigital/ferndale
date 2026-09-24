@@ -129,3 +129,22 @@ const fetchManaged = unstable_cache(
 export function getManagedAreaPages() {
   return fetchManaged();
 }
+
+const fetchUnpublishedBuiltIns = unstable_cache(
+  async (): Promise<string[]> => {
+    const rows = await prisma.areaPage
+      .findMany({ where: { managed: false, published: false }, select: { path: true } })
+      .catch(() => []);
+    return (rows as { path: string }[]).map((r) => r.path);
+  },
+  ["area:unpublished-built-ins"],
+  { tags: ["area-pages"], revalidate: 60 },
+);
+
+/**
+ * Built-in town x service pages the admin has taken off the site. They are live by
+ * default, so this is the short list of exceptions the sitemap has to leave out.
+ */
+export function getUnpublishedBuiltInPaths() {
+  return fetchUnpublishedBuiltIns();
+}

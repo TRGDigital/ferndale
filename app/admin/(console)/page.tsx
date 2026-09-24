@@ -35,6 +35,8 @@ import {
   saveReviewsUrl,
 } from "./actions";
 import { AreaUpdatedToggle } from "./AreaUpdatedToggle";
+import { SubmitButton } from "./SubmitButton";
+import { KeywordsInput } from "./KeywordsInput";
 import { getSetting } from "@/lib/data/settings";
 import { getAdminSession, envAdminEmails } from "@/lib/auth";
 import { siteImages } from "@/lib/content/site-images";
@@ -1230,6 +1232,7 @@ function AreaAccordion({
   published,
   pageUpdated,
   status,
+  contentState,
   keyword,
   hasRow,
   values,
@@ -1242,6 +1245,7 @@ function AreaAccordion({
   published: boolean;
   pageUpdated: boolean;
   status: string;
+  contentState: string;
   keyword: string;
   hasRow: boolean;
   values: {
@@ -1261,14 +1265,15 @@ function AreaAccordion({
   };
   editId?: string;
 }) {
-  const badge =
-    status === "Published"
-      ? "bg-green-100 text-green-700"
-      : status === "Draft"
-        ? "bg-amber-100 text-amber-700"
-        : status === "Saved"
-          ? "bg-blue-100 text-blue-700"
-          : "bg-neutral-100 text-neutral-500";
+  // Two separate facts, because one badge saying "Saved" never answered the only
+  // question that matters: is this page on the site right now?
+  const badge = published
+    ? "bg-green-100 text-green-700"
+    : "bg-red-100 text-red-700";
+  const contentBadge =
+    contentState === "Your wording"
+      ? "bg-blue-100 text-blue-700"
+      : "bg-neutral-100 text-neutral-500";
   return (
     <details
       open={editId === path}
@@ -1288,7 +1293,12 @@ function AreaAccordion({
         </span>
         <span className="flex items-center gap-3">
           <AreaUpdatedToggle path={path} initial={pageUpdated} />
-          <span className={`rounded px-1.5 py-0.5 text-xs ${badge}`}>{status}</span>
+          <span className={`rounded px-1.5 py-0.5 text-xs ${contentBadge}`}>
+            {contentState}
+          </span>
+          <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${badge}`}>
+            {status}
+          </span>
           <span className="text-lg text-neutral-400 transition-transform group-open:rotate-45">
             +
           </span>
@@ -1303,19 +1313,15 @@ function AreaAccordion({
         >
           <input type="hidden" name="path" value={path} />
           <div className="min-w-[240px] flex-1">
-            <Field
-              label="Target keyword"
+            <KeywordsInput
               name="targetKeyword"
               defaultValue={keyword}
-              hint="e.g. residential care home haywards heath"
+              hint="Separate with commas. The first is the main keyword; the others are worked into the H2s and H3s."
             />
           </div>
-          <button
-            type="submit"
-            className="rounded bg-brand-700 px-3 py-1.5 text-sm text-white"
-          >
+          <SubmitButton variant="primary" pendingLabel="Writing the page…">
             Generate with AI
-          </button>
+          </SubmitButton>
         </form>
 
         {/* Full content editor */}
@@ -1386,43 +1392,53 @@ function AreaAccordion({
             Only link to pages that exist so the links never break.
           </p>
           <div className="flex flex-wrap items-center gap-3 pt-1">
-            <button
-              type="submit"
-              className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
-            >
+            <SubmitButton variant="dark" pendingLabel="Saving…">
               Save changes
-            </button>
+            </SubmitButton>
           </div>
         </form>
 
-        {/* Managed: publish + delete. Built-in: reset the override. */}
-        <div className="flex items-center gap-4 border-t border-neutral-100 pt-3">
+        {/* Publish state, then the destructive options. Built-in pages are live from
+            the day the site went up, so the control there takes one off the site
+            rather than putting one on it. */}
+        <div className="flex flex-wrap items-center gap-4 border-t border-neutral-100 pt-3">
+          <form action={setAreaPublished}>
+            <input type="hidden" name="path" value={path} />
+            <input type="hidden" name="published" value={published ? "false" : "true"} />
+            <SubmitButton
+              variant={published ? "danger" : "link"}
+              pendingLabel={published ? "Taking it down…" : "Publishing…"}
+              confirm={
+                published
+                  ? "Unpublish this page? It will return a not found error to anyone who visits it, and it will drop out of your sitemap."
+                  : undefined
+              }
+            >
+              {published ? "Unpublish this page" : "Publish this page"}
+            </SubmitButton>
+          </form>
+
           {managed ? (
-            <>
-              <form action={setAreaPublished}>
-                <input type="hidden" name="path" value={path} />
-                <input
-                  type="hidden"
-                  name="published"
-                  value={published ? "false" : "true"}
-                />
-                <button type="submit" className="text-sm text-brand-700 underline">
-                  {published ? "Unpublish" : "Publish"}
-                </button>
-              </form>
-              <form action={deleteAreaPage}>
-                <input type="hidden" name="path" value={path} />
-                <button type="submit" className="text-sm text-red-600 underline">
-                  Delete page
-                </button>
-              </form>
-            </>
+            <form action={deleteAreaPage}>
+              <input type="hidden" name="path" value={path} />
+              <SubmitButton
+                variant="danger"
+                pendingLabel="Deleting…"
+                confirm="Delete this page for good? This cannot be undone."
+              >
+                Delete page
+              </SubmitButton>
+            </form>
           ) : hasRow ? (
             <form action={resetArea}>
               <input type="hidden" name="path" value={path} />
-              <button type="submit" className="text-sm text-red-600 underline">
+              <SubmitButton
+                variant="danger"
+                pendingLabel="Resetting…"
+                confirm="Reset this page to the default wording? Your edits and any AI content will be lost."
+              >
                 Reset to default wording
-              </button>
+              </SubmitButton>
             </form>
           ) : (
             <span className="text-xs text-neutral-400">
@@ -1490,7 +1506,8 @@ async function AreasTab({
         managed: true,
         published: r.published,
         pageUpdated: r.pageUpdated,
-        status: r.published ? "Published" : "Draft",
+        status: r.published ? "Live" : "Unpublished",
+        contentState: "Your wording",
         keyword: r.targetKeyword ?? "",
         hasRow: true,
         values: {
@@ -1530,16 +1547,20 @@ async function AreasTab({
       const points = Array.isArray(r?.offerPoints)
         ? (r!.offerPoints as string[])
         : care.points;
+      // A built-in page is live unless it has been explicitly unpublished; a page
+      // with no row at all has never been touched, so it is live by definition.
+      const isLive = r?.published ?? true;
       return {
         path,
         townName: town.name,
         careName: care.name,
         managed: false,
-        published: true,
+        published: isLive,
         pageUpdated: r?.pageUpdated ?? false,
-        // "Saved" only when there is real content override, so a row that exists
-        // purely because it was flagged "Page updated" still reads as "Default".
-        status:
+        status: isLive ? "Live" : "Unpublished",
+        // Whether the wording is yours or the built-in default. Kept separate from
+        // the publish state, because "Saved" never told you if the page was live.
+        contentState:
           r &&
           (r.metaTitle ||
             r.metaDescription ||
@@ -1552,8 +1573,8 @@ async function AreasTab({
             r.areasLinks ||
             r.offerPoints ||
             r.faqs)
-            ? "Saved"
-            : "Default",
+            ? "Your wording"
+            : "Default wording",
         keyword: r?.targetKeyword ?? "",
         hasRow: !!r,
         values: {

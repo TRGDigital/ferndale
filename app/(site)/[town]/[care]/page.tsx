@@ -75,6 +75,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const codeTown = townBySlug(townSlug);
   const codeCare = careBySlug(careSlug);
   if (!codeTown && !codeCare && (!row || !row.published || !row.managed)) return {};
+  // Unpublished built-in: no metadata, the page itself returns not found.
+  if ((codeTown || codeCare) && row && !row.published) return {};
 
   const townName = codeTown?.name ?? row?.townName ?? titleCaseSlug(townSlug);
   const careName = codeCare?.name ?? row?.careName ?? titleCaseSlug(careSlug);
@@ -139,6 +141,8 @@ export default async function AreaLandingPage({ params }: Params) {
   if (!town || !care) notFound();
   // A page that isn't a code combo must be a published, managed row.
   if (!isCodeCombo && (!row || !row.published || !row.managed)) notFound();
+  // A built-in combo is live unless the admin has explicitly unpublished it.
+  if (isCodeCombo && row && !row.published) notFound();
 
   const def = codeTown && codeCare ? defaultAreaContent(codeTown, codeCare) : null;
   const heading = row?.heading || def?.heading || `${care.name} in ${town.name}`;
