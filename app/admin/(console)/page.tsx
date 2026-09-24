@@ -824,7 +824,15 @@ async function PagesTab({ editId }: { editId?: string }) {
         <h2 className="mb-3 font-medium">
           {editing ? `Edit page: ${editing.path}` : "Select a page to edit"}
         </h2>
-        <form action={upsertPage} className="flex flex-col gap-3">
+        {/* Keyed by path so switching pages remounts the fields. Without this the
+            counted meta boxes keep the state they were first mounted with, which
+            makes every page look as though its meta has been deleted, and saving
+            would then write those empty boxes over real values. */}
+        <form
+          key={editing?.path ?? "new"}
+          action={upsertPage}
+          className="flex flex-col gap-3"
+        >
           <Field label="Path (e.g. /about/)" name="path" defaultValue={editing?.path} required />
           <Field label="Title" name="title" defaultValue={editing?.title} required />
           <CountedField
