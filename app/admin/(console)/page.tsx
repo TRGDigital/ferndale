@@ -605,6 +605,24 @@ async function PostsTab({ editId }: { editId?: string }) {
                 >
                   {p.status}
                 </span>
+                {p.status === "PUBLISHED" ? (
+                  <a
+                    href={`/blog/${p.slug}/`}
+                    target="_blank"
+                    rel="noopener"
+                    className="underline"
+                    title="Open the live post in a new tab"
+                  >
+                    View
+                  </a>
+                ) : (
+                  <span
+                    className="text-neutral-300"
+                    title="Drafts are not on the site yet, so this would return not found. Publish it to view."
+                  >
+                    View
+                  </span>
+                )}
                 <Link
                   href={`?tab=posts&edit=${p.id}`}
                   prefetch={false}
@@ -629,6 +647,21 @@ async function PostsTab({ editId }: { editId?: string }) {
       <Card>
         <h2 className="mb-3 font-medium">
           {editing ? "Edit post" : "New post"}
+          {editing ? (
+            <a
+              href={`/blog/${editing.slug}/`}
+              target="_blank"
+              rel="noopener"
+              className="ml-3 text-sm font-normal text-brand-700 underline"
+              title={
+                editing.status === "PUBLISHED"
+                  ? "Open the live post in a new tab"
+                  : "Not published yet, so this will show not found until you publish it"
+              }
+            >
+              View the page
+            </a>
+          ) : null}
         </h2>
         {/* Keyed like the pages form: without it the counted fields keep the state
             they were first mounted with when you switch to another post. */}
