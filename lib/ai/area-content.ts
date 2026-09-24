@@ -108,6 +108,7 @@ Two rules that matter as much as the rest:
 
   let out = await generateJson<Record<string, unknown>>(system, user, {
     maxTokens: 16000,
+    label: "writing the page",
   });
 
   // Defensive recovery: if a model ever nests the whole JSON inside one string field,

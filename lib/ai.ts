@@ -14,7 +14,7 @@ const MODEL = "claude-sonnet-5";
 export async function generateJson<T = unknown>(
   system: string,
   user: string,
-  opts?: { maxTokens?: number },
+  opts?: { maxTokens?: number; label?: string },
 ): Promise<T> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) {
@@ -62,7 +62,7 @@ export async function generateJson<T = unknown>(
   // to surface as "did not return JSON", which sent you looking for the wrong problem.
   if (data.stop_reason === "max_tokens") {
     throw new Error(
-      "The AI reply was cut off before it finished, because the page asked for more than fits in one reply. Try again with fewer keywords, or a smaller CSV.",
+      `The AI reply was cut off before it finished${opts?.label ? ` while ${opts.label}` : ""}. It was asked for more than fits in one reply.`,
     );
   }
   const start = text.indexOf("{");

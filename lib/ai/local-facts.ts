@@ -55,9 +55,25 @@ Return ONLY a JSON object of the form { "facts": [ ... ] }, where each item is:
 - "confidence": "high" only where you are genuinely confident this is correct and current. "low" for anything you are inferring, half remembering, or that may have changed.
 - "check": the exact search someone should run to confirm it, for example "Princess Royal Hospital Haywards Heath" or "West Sussex County Council adult social care assessment".
 
-Give 12 to 15 items. Do not invent a journey time to the minute; approximate and mark it low confidence. Do not include anything about the care home itself, its rating, its beds or its team, because we already have those. Do not repeat the same fact in different words.`;
+Give 12 items. Keep each fact to one short sentence and each check to a few words. Do not invent a journey time to the minute; approximate and mark it low confidence. Do not include anything about the care home itself, its rating, its beds or its team, because we already have those. Do not repeat the same fact in different words.`;
 
-  const out = await generateJson<{ facts?: unknown }>(system, user, { maxTokens: 3000 });
+  // Fifteen facts with four fields each did not fit in the old 3,000 ceiling, and a
+  // truncated reply is indistinguishable from a broken one. Plenty of room now, and
+  // one quieter retry if it still runs long, so nobody sees an error for this.
+  let out: { facts?: unknown };
+  try {
+    out = await generateJson<{ facts?: unknown }>(system, user, {
+      maxTokens: 8000,
+      label: "suggesting local facts",
+    });
+  } catch (e) {
+    if (!(e instanceof Error) || !e.message.includes("cut off")) throw e;
+    out = await generateJson<{ facts?: unknown }>(
+      system,
+      `${user}\n\nKeep it to 8 items, each one short.`,
+      { maxTokens: 8000, label: "suggesting local facts" },
+    );
+  }
   const raw = Array.isArray(out.facts) ? out.facts : [];
 
   const seen = new Set<string>();
