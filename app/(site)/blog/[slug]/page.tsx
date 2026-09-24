@@ -26,10 +26,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPostBySlug(slug).catch(() => null);
+  // A post's own SEO title, meta description and canonical are edited in the console,
+  // so they have to be used here. Until now this passed only the title and excerpt, so
+  // filling those boxes in changed nothing on the page, which looked like the values
+  // had not saved.
   return pageMetadata(`/blog/${slug}/`, {
-    title: post ? post.title : siteConfig.name,
-    description: post?.excerpt ?? undefined,
+    title: post ? (post.seoTitle || post.title) : siteConfig.name,
+    description: post?.metaDescription || post?.excerpt || undefined,
     ogImageUrl: post?.coverImageUrl ?? undefined,
+    canonicalUrl: post?.canonicalUrl ?? undefined,
   });
 }
 

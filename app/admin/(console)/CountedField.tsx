@@ -16,6 +16,7 @@ export function CountedField({
   limit,
   hint,
   rows,
+  placeholder,
 }: {
   label: string;
   name: string;
@@ -25,6 +26,8 @@ export function CountedField({
   hint?: string;
   /** Set for a textarea instead of a single line. */
   rows?: number;
+  /** What the site will use if this is left empty. */
+  placeholder?: string;
 }) {
   const [value, setValue] = useState(defaultValue ?? "");
   const count = value.length;
@@ -40,6 +43,7 @@ export function CountedField({
   const shared = {
     name,
     value,
+    placeholder,
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setValue(e.target.value),
     className:

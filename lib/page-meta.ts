@@ -17,6 +17,8 @@ export type MetaFallback = {
   titleAbsolute?: boolean;
   // Skip the SitePage lookup — for routes whose meta lives in another model (e.g. AreaPage).
   ignoreSitePage?: boolean;
+  // A canonical set on the record itself (a blog post can carry its own).
+  canonicalUrl?: string | null;
 };
 
 export async function pageMetadata(
@@ -39,7 +41,7 @@ export async function pageMetadata(
   const ogImage =
     page?.ogImageUrl ?? fallback.ogImageUrl ?? (siteOgImage || undefined);
   const canonical =
-    page?.canonicalUrl ?? `${siteConfig.url}${path}`;
+    page?.canonicalUrl ?? fallback.canonicalUrl ?? `${siteConfig.url}${path}`;
 
   return {
     title,

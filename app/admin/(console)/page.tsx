@@ -623,7 +623,13 @@ async function PostsTab({ editId }: { editId?: string }) {
         <h2 className="mb-3 font-medium">
           {editing ? "Edit post" : "New post"}
         </h2>
-        <form action={upsertPost} className="flex flex-col gap-3">
+        {/* Keyed like the pages form: without it the counted fields keep the state
+            they were first mounted with when you switch to another post. */}
+        <form
+          key={editing?.id ?? "new"}
+          action={upsertPost}
+          className="flex flex-col gap-3"
+        >
           {editing ? (
             <input type="hidden" name="id" value={editing.id} />
           ) : null}
@@ -665,8 +671,23 @@ async function PostsTab({ editId }: { editId?: string }) {
           <Field label="Cover image URL" name="coverImageUrl" defaultValue={editing?.coverImageUrl} />
           <Field label="Cover image alt" name="coverImageAlt" defaultValue={editing?.coverImageAlt} />
           <Field label="Tags (comma-separated)" name="tags" defaultValue={editing?.tags.join(", ")} />
-          <Field label="SEO title" name="seoTitle" defaultValue={editing?.seoTitle} />
-          <Field label="Meta description" name="metaDescription" defaultValue={editing?.metaDescription} />
+          <CountedField
+            label="SEO title"
+            name="seoTitle"
+            defaultValue={editing?.seoTitle}
+            limit={60}
+            placeholder={editing?.title ?? ""}
+            hint="Leave blank and the post title above is used. Past about 60 characters Google cuts the end off."
+          />
+          <CountedField
+            label="Meta description"
+            name="metaDescription"
+            defaultValue={editing?.metaDescription}
+            limit={155}
+            rows={3}
+            placeholder={editing?.excerpt ?? ""}
+            hint="Leave blank and the excerpt is used. This is the grey text under the link in Google."
+          />
           <Field
             label="Canonical URL"
             name="canonicalUrl"
