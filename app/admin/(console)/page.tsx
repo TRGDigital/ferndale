@@ -39,6 +39,7 @@ import { buildAreaLinks, areaLinksToText } from "@/lib/area-links";
 import { closestPage } from "@/lib/page-similarity";
 import { SubmitButton } from "./SubmitButton";
 import { KeywordsInput } from "./KeywordsInput";
+import { LocalFactsField } from "./LocalFactsField";
 import { getSetting } from "@/lib/data/settings";
 import { getAdminSession, envAdminEmails } from "@/lib/auth";
 import { siteImages } from "@/lib/content/site-images";
@@ -1361,13 +1362,7 @@ function AreaAccordion({
         <form action={managed ? updateAreaPage : upsertArea} className="space-y-3">
           <input type="hidden" name="path" value={path} />
           <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3">
-            <Area
-              label="Local facts (what makes this town different)"
-              name="localFacts"
-              rows={4}
-              defaultValue={values.localFacts}
-              hint="Drive time and route from this town, the landmark people navigate by, which council does the assessment, the nearest hospital, parking. Fed to the AI when you generate, and the single best way to stop this page reading like the others. Never shown on the site as-is."
-            />
+            <LocalFactsField path={path} defaultValue={values.localFacts} />
           </div>
           <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3">
             <Area

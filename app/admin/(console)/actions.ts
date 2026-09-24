@@ -11,6 +11,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { generateAreaLandingContent } from "@/lib/ai/area-content";
 import { readAlsoAskedCsv, selectQuestions } from "@/lib/alsoasked";
 import { angles } from "@/lib/page-similarity";
+import { suggestLocalFacts, type FactCandidate } from "@/lib/ai/local-facts";
+import { siteConfig } from "@/lib/site-config";
 import { townBySlug, careBySlug, titleCaseSlug } from "@/lib/content/local-areas";
 import { createServiceClient, GALLERY_BUCKET, GALLERY_PREFIX } from "@/lib/supabase/admin";
 
@@ -407,6 +409,36 @@ export async function updateAreaPage(fd: FormData) {
   });
   revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
   redirect(`/admin/?tab=areas&edit=${encodeURIComponent(path)}`);
+}
+
+/**
+ * Candidate local facts for an area page. Returns them to the editor rather than
+ * saving anything: the model is being asked about things we have not told it, which
+ * is where models invent, so a person picks the true ones. See lib/ai/local-facts.ts.
+ */
+export async function suggestLocalFactsAction(
+  path: string,
+): Promise<{ facts: FactCandidate[]; error?: string }> {
+  await requireAdmin();
+  const row = await prisma.areaPage.findUnique({ where: { path } });
+  const m = path.match(/^\/([^/]+)\/([^/]+)\/$/);
+  const townSlug = m?.[1] ?? "";
+  const careSlug = m?.[2] ?? "";
+  const townName = row?.townName ?? townBySlug(townSlug)?.name ?? titleCaseSlug(townSlug);
+  const careName = row?.careName ?? careBySlug(careSlug)?.name ?? titleCaseSlug(careSlug);
+  if (!townName) return { facts: [], error: "Could not work out which town this page is for." };
+
+  const { address } = siteConfig;
+  try {
+    const facts = await suggestLocalFacts({
+      townName,
+      careName,
+      homeLocation: `${address.streetAddress}, ${address.addressLocality}, ${address.addressRegion} ${address.postalCode}`,
+    });
+    return { facts };
+  } catch (e) {
+    return { facts: [], error: e instanceof Error ? e.message : "Could not suggest facts." };
+  }
 }
 
 /** Publish / unpublish a managed landing page. */
