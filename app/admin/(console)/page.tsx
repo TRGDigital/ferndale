@@ -42,6 +42,7 @@ import { SubmitButton } from "./SubmitButton";
 import { KeywordsInput } from "./KeywordsInput";
 import { LocalFactsField } from "./LocalFactsField";
 import { CountedField } from "./CountedField";
+import { PostUpdatedToggle } from "./PostUpdatedToggle";
 import { getSetting } from "@/lib/data/settings";
 import { getAdminSession, envAdminEmails } from "@/lib/auth";
 import { siteImages } from "@/lib/content/site-images";
@@ -577,7 +578,12 @@ async function PostsTab({ editId }: { editId?: string }) {
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <h2 className="mb-3 font-medium">Posts ({posts.length})</h2>
+        <h2 className="mb-3 font-medium">
+          Posts ({posts.length})
+          <span className="ml-2 text-sm font-normal text-neutral-500">
+            {posts.filter((p) => p.postUpdated).length} marked as updated
+          </span>
+        </h2>
         <ul className="max-h-[55vh] divide-y divide-neutral-100 overflow-y-auto pr-1 text-sm">
           {posts.map((p) => (
             <li
@@ -589,6 +595,7 @@ async function PostsTab({ editId }: { editId?: string }) {
                 <span className="text-neutral-400">/{p.slug}</span>
               </span>
               <span className="flex items-center gap-2">
+                <PostUpdatedToggle id={p.id} initial={p.postUpdated} />
                 <span
                   className={`rounded px-1.5 py-0.5 text-xs ${
                     p.status === "PUBLISHED"

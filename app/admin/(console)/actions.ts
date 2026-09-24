@@ -324,6 +324,14 @@ export async function resetArea(fd: FormData) {
 /** Admin-only "Page updated" tracker toggle for an area page. Upserts a row so
  *  built-in combos (which may not have a row yet) can be flagged too. Does not
  *  touch page content, so it never changes what the page shows. */
+/** Admin-only "post updated" tracker, so a refresh pass across the blog can be kept track of. */
+export async function setPostUpdated(id: string, updated: boolean) {
+  await requireAdmin();
+  if (!id) return;
+  await prisma.blogPost.update({ where: { id }, data: { postUpdated: updated } });
+  revalidateTags(["blog"]);
+}
+
 export async function setAreaPageUpdated(path: string, updated: boolean) {
   await requireAdmin();
   if (!path) return;

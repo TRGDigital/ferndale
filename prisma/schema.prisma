@@ -38,6 +38,7 @@ model BlogPost {
   canonicalUrl    String?
   tags            String[]    @default([])
   wpId            Int?        @unique // original WordPress post id, for idempotent re-migration
+  postUpdated     Boolean     @default(false) // admin-only tracker: has this post been refreshed?
   authorId        String?
   author          BlogAuthor? @relation(fields: [authorId], references: [id], onDelete: SetNull)
   createdAt       DateTime    @default(now())
