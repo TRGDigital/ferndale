@@ -76,7 +76,7 @@ Return ONLY a JSON object with exactly these keys:
 Be specific to ${townName} and ${nounLower}, write for people not search engines, and keep every claim honest and grounded in the facts. A reader skimming only the subheadings should still understand what you offer and where.`;
 
   let out = await generateJson<Record<string, unknown>>(system, user, {
-    maxTokens: 3500,
+    maxTokens: 9000,
   });
 
   // Defensive recovery: if a model ever nests the whole JSON inside one string field,

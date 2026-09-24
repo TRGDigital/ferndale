@@ -31,7 +31,7 @@ export async function generateJson<T = unknown>(
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: opts?.maxTokens ?? 3000,
+      max_tokens: opts?.maxTokens ?? 4000,
       system,
       messages: [
         {
@@ -45,7 +45,10 @@ export async function generateJson<T = unknown>(
     const detail = await res.text().catch(() => "");
     throw new Error(`AI request failed (${res.status}). ${detail.slice(0, 200)}`);
   }
-  const data = (await res.json()) as { content?: Array<{ text?: string }> };
+  const data = (await res.json()) as {
+    content?: Array<{ text?: string }>;
+    stop_reason?: string;
+  };
   let text = (data.content ?? [])
     .map((b) => (typeof b?.text === "string" ? b.text : ""))
     .join("")
@@ -55,6 +58,13 @@ export async function generateJson<T = unknown>(
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```$/i, "")
     .trim();
+  // A reply that ran out of room stops mid-sentence, with no closing brace. That used
+  // to surface as "did not return JSON", which sent you looking for the wrong problem.
+  if (data.stop_reason === "max_tokens") {
+    throw new Error(
+      "The AI reply was cut off before it finished, because the page asked for more than fits in one reply. Try again with fewer keywords, or a smaller CSV.",
+    );
+  }
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
   if (start < 0 || end <= start) {
