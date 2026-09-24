@@ -20,7 +20,11 @@ const POSITIONS = [
 
 const MAX_CV_BYTES = 4 * 1024 * 1024;
 
-export function CareersForm() {
+/** `position` pre-selects the role when the form sits on a vacancy page. */
+export function CareersForm({ position }: { position?: string } = {}) {
+  const positions =
+    position && !POSITIONS.includes(position) ? [position, ...POSITIONS] : POSITIONS;
+
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
 
@@ -93,8 +97,12 @@ export function CareersForm() {
       </label>
       <label className="flex flex-col gap-1 text-sm">
         Position you’re interested in
-        <select name="position" className="rounded border border-brand-200 px-3 py-2">
-          {POSITIONS.map((p) => (
+        <select
+          name="position"
+          defaultValue={position}
+          className="rounded border border-brand-200 px-3 py-2"
+        >
+          {positions.map((p) => (
             <option key={p} value={p}>
               {p}
             </option>
