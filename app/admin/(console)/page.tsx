@@ -1354,15 +1354,27 @@ function AreaAccordion({
               already on this page are left untouched.
             </span>
           </label>
-          <div className="w-full">
-            <LocalFactsField path={path} defaultValue={values.localFacts} />
-          </div>
-          <div className="flex w-full flex-wrap items-center gap-3">
-            <SubmitButton variant="primary" pendingLabel="Writing the page…">
-              Generate with AI
-            </SubmitButton>
-            <SubmitButton variant="link" pendingLabel="Saving…" formAction={saveAreaInputs}>
-              Save these inputs without generating
+          <SubmitButton variant="primary" pendingLabel="Writing the page…">
+            Generate with AI
+          </SubmitButton>
+          <p className="w-full text-xs text-neutral-500">
+            {values.localFacts.trim()
+              ? "Uses the local facts saved below."
+              : "No local facts saved yet. Add some below first: they are what stop this page reading like the others."}
+          </p>
+        </form>
+
+        {/* Local facts stand on their own: they describe the town, and they are saved
+            and kept whether or not anything is ever generated. */}
+        <form
+          action={saveAreaInputs}
+          className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3"
+        >
+          <input type="hidden" name="path" value={path} />
+          <LocalFactsField path={path} defaultValue={values.localFacts} />
+          <div className="mt-3">
+            <SubmitButton variant="dark" pendingLabel="Saving…">
+              Save local facts
             </SubmitButton>
           </div>
         </form>

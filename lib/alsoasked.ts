@@ -16,7 +16,9 @@ export type AlsoAskedQuestion = {
 
 /** Hard caps, so a 5,000 row export cannot blow up the prompt. */
 const MAX_ROWS = 2000;
-const MAX_QUESTIONS = 40;
+// Enough for a good pick, few enough that the model does not try to answer them all
+// and run out of room mid reply.
+const MAX_QUESTIONS = 20;
 
 /** Minimal RFC4180 parser: handles quoted fields, escaped quotes and newlines inside quotes. */
 export function parseCsv(text: string): string[][] {

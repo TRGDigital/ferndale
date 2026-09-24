@@ -62,13 +62,13 @@ ${localFacts.trim()}
     : "";
   const avoidBlock = usedAngles.length
     ? `ALREADY WRITTEN on our other local pages. Do NOT reuse these subheadings, openings or angles. Find different questions to answer and a different way in:
-${usedAngles.slice(0, 40).map((a) => `- ${a}`).join("\n")}
+${usedAngles.slice(0, 25).map((a) => `- ${a}`).join("\n")}
 `
     : "";
   const hasQuestions = questions.length > 0;
   const questionBlock = hasQuestions
     ? `REAL QUESTIONS people search for around this subject, taken from Google's own "people also ask" data. These are the exact words searchers use, so treat them as the brief:
-${questions.map((q, i) => `${i + 1}. ${q}`).join("\n")}
+${questions.slice(0, 18).map((q, i) => `${i + 1}. ${q}`).join("\n")}
 `
     : "";
   const secondaryLine = secondary.length
@@ -92,11 +92,11 @@ Return ONLY a JSON object with exactly these keys:
 - "metaDescription": under 155 characters, compelling, includes ${townName}.
 - "heading": the H1, natural and specific.
 - "intro": one or two short HTML paragraphs wrapped in <p></p> for the hero, mentioning ${townName} and that Ferndale is in ${baseTown}.
-- "body": the main written section, as HTML, structured with subheadings rather than as a wall of paragraphs. Use two or three <h2> subheadings, and under at least one of them a pair of <h3> subheadings. ${hasQuestions ? "Base the subheadings on the real questions above: turn the most relevant ones into headings, keeping the searcher's own wording where it reads naturally, and answer each one in the paragraphs beneath it. " : ""}Every <h2> and <h3> must read like something a person would say out loud, and between them they should work in the keywords above and the place name naturally, never stuffed and never the same phrase twice. Under every subheading write one or two <p> paragraphs of genuinely useful, reassuring content about choosing ${nounLower} for a loved one near ${townName}, grounded in the facts. No filler, no repetition, and do not use <h1> anywhere, because the page already has one.
+- "body": the main written section, as HTML, structured with subheadings rather than as a wall of paragraphs. Use two or three <h2> subheadings, and under at least one of them a pair of <h3> subheadings. ${hasQuestions ? "Base the subheadings on the real questions above: turn the most relevant ones into headings, keeping the searcher's own wording where it reads naturally, and answer each one in the paragraphs beneath it. " : ""}Every <h2> and <h3> must read like something a person would say out loud, and between them they should work in the keywords above and the place name naturally, never stuffed and never the same phrase twice. Under every subheading write one or two <p> paragraphs of genuinely useful, reassuring content about choosing ${nounLower} for a loved one near ${townName}, grounded in the facts. No filler, no repetition, and do not use <h1> anywhere, because the page already has one. Keep the whole body between 450 and 700 words: use at most three of the questions above as subheadings and leave the rest for the FAQs. A tight page beats a long one.
 - "offerPoints": an array of 4 to 6 short plain-text bullet strings (no HTML) describing what Ferndale offers for this service.
 - "faqs": ${
     hasQuestions
-      ? `an array of 6 to 8 objects, each { "question": string, "answer": string }. Choose the most useful and most relevant questions from the real questions listed above, the ones a family looking for ${nounLower} near ${townName} would actually ask. Keep the searcher's wording where it reads naturally, tidy it only where it reads badly, and do not repeat a question you have already used as a subheading in the body. Answer each in one to three sentences, grounded in the facts, with no invented specifics, and never contradicting anything you have written above.`
+      ? `an array of 6 to 8 objects, each { "question": string, "answer": string }. Choose the most useful and most relevant questions from the real questions listed above, the ones a family looking for ${nounLower} near ${townName} would actually ask. Keep the searcher's wording where it reads naturally, tidy it only where it reads badly, and do not repeat a question you have already used as a subheading in the body. Answer each in one to three sentences and at most 55 words, grounded in the facts, with no invented specifics, and never contradicting anything you have written above.`
       : `an empty array []. No questions were supplied, so do not write any FAQs.`
   }
 
@@ -107,7 +107,7 @@ Two rules that matter as much as the rest:
 2. This page must be genuinely different from our other local pages, not the same page with a different town name. If you have nothing specific to say about ${townName}, write about the decision the reader is making rather than padding with facts about the home.`;
 
   let out = await generateJson<Record<string, unknown>>(system, user, {
-    maxTokens: 9000,
+    maxTokens: 16000,
   });
 
   // Defensive recovery: if a model ever nests the whole JSON inside one string field,
