@@ -36,6 +36,7 @@ import {
 } from "./actions";
 import { AreaUpdatedToggle } from "./AreaUpdatedToggle";
 import { buildAreaLinks, areaLinksToText } from "@/lib/area-links";
+import { closestPage } from "@/lib/page-similarity";
 import { SubmitButton } from "./SubmitButton";
 import { KeywordsInput } from "./KeywordsInput";
 import { getSetting } from "@/lib/data/settings";
@@ -1235,6 +1236,7 @@ function AreaAccordion({
   status,
   contentState,
   keyword,
+  similar,
   hasRow,
   values,
   editId,
@@ -1248,6 +1250,7 @@ function AreaAccordion({
   status: string;
   contentState: string;
   keyword: string;
+  similar: { path: string; score: number } | null;
   hasRow: boolean;
   values: {
     metaTitle: string;
@@ -1263,6 +1266,7 @@ function AreaAccordion({
     careName: string;
     careNoun: string;
     notes: string;
+    localFacts: string;
   };
   editId?: string;
 }) {
@@ -1297,6 +1301,18 @@ function AreaAccordion({
           <span className={`rounded px-1.5 py-0.5 text-xs ${contentBadge}`}>
             {contentState}
           </span>
+          {similar ? (
+            <span
+              title={`This page shares a lot of its wording with ${similar.path}. Add local facts, or generate again with a different AlsoAsked export.`}
+              className={`rounded px-1.5 py-0.5 text-xs ${
+                similar.score >= 0.6
+                  ? "bg-red-100 text-red-700"
+                  : "bg-amber-100 text-amber-800"
+              }`}
+            >
+              {Math.round(similar.score * 100)}% like {similar.path.split("/")[1]}
+            </span>
+          ) : null}
           <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${badge}`}>
             {status}
           </span>
@@ -1344,6 +1360,15 @@ function AreaAccordion({
         {/* Full content editor */}
         <form action={managed ? updateAreaPage : upsertArea} className="space-y-3">
           <input type="hidden" name="path" value={path} />
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3">
+            <Area
+              label="Local facts (what makes this town different)"
+              name="localFacts"
+              rows={4}
+              defaultValue={values.localFacts}
+              hint="Drive time and route from this town, the landmark people navigate by, which council does the assessment, the nearest hospital, parking. Fed to the AI when you generate, and the single best way to stop this page reading like the others. Never shown on the site as-is."
+            />
+          </div>
           <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3">
             <Area
               label="Internal notes (private — only you see these, never shown on the site)"
@@ -1504,6 +1529,20 @@ async function AreasTab({
     return areaLinksToText(buildAreaLinks(livePairs, townSlug, careSlug));
   };
 
+  // How alike the pages actually are. Cheap at this scale (a few dozen pages), and it
+  // is the only thing that tells you whether the local facts and the CSVs are working.
+  const texts = rows
+    .filter((r) => (r.intro ?? "") || (r.body ?? ""))
+    .map((r) => ({ path: r.path, text: `${r.intro ?? ""} ${r.body ?? ""}` }));
+  const similarTo = new Map<string, { path: string; score: number }>();
+  for (const t of texts) {
+    const hit = closestPage(
+      t.text,
+      texts.filter((o) => o.path !== t.path),
+    );
+    if (hit) similarTo.set(t.path, hit);
+  }
+
   const managedItems = rows
     .filter((r) => r.managed)
     .map((r) => {
@@ -1518,6 +1557,7 @@ async function AreasTab({
         status: r.published ? "Live" : "Unpublished",
         contentState: "Your wording",
         keyword: r.targetKeyword ?? "",
+        similar: similarTo.get(r.path) ?? null,
         hasRow: true,
         values: {
           metaTitle: r.metaTitle ?? "",
@@ -1539,6 +1579,7 @@ async function AreasTab({
           careName: r.careName ?? "",
           careNoun: r.careNoun ?? "",
           notes: r.notes ?? "",
+          localFacts: r.localFacts ?? "",
         },
       };
     });
@@ -1580,6 +1621,7 @@ async function AreasTab({
             ? "Your wording"
             : "Default wording",
         keyword: r?.targetKeyword ?? "",
+        similar: similarTo.get(path) ?? null,
         hasRow: !!r,
         values: {
           metaTitle: r?.metaTitle ?? "",
@@ -1595,6 +1637,7 @@ async function AreasTab({
           careName: care.name,
           careNoun: care.noun,
           notes: r?.notes ?? "",
+          localFacts: r?.localFacts ?? "",
         },
       };
     }),

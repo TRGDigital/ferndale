@@ -28,8 +28,23 @@ export async function generateAreaLandingContent(opts: {
    * are left alone entirely, so an upload is never needed to refresh the copy.
    */
   questions?: string[];
+  /** What makes THIS town different: drive time, landmark, council, hospital, parking. */
+  localFacts?: string;
+  /**
+   * What the other pages already say: their subheadings and opening lines. The model
+   * is told to avoid these angles, because a site of near-identical local pages is
+   * worth less than a handful of genuinely different ones.
+   */
+  usedAngles?: string[];
 }): Promise<GeneratedArea> {
-  const { townName, careName, keyword, questions = [] } = opts;
+  const {
+    townName,
+    careName,
+    keyword,
+    questions = [],
+    localFacts = "",
+    usedAngles = [],
+  } = opts;
   const nounLower = careName.toLowerCase();
 
   // The admin sends a comma separated list. The first is what the page is written
@@ -40,6 +55,16 @@ export async function generateAreaLandingContent(opts: {
     .filter(Boolean);
   const primary = keywords[0] ?? keyword;
   const secondary = keywords.slice(1);
+  const localBlock = localFacts.trim()
+    ? `LOCAL FACTS about ${townName} specifically. These are true and are the most valuable thing on the page, because they are the only part a rival cannot copy. Use them concretely, more than once, and let them shape what the page is about:
+${localFacts.trim()}
+`
+    : "";
+  const avoidBlock = usedAngles.length
+    ? `ALREADY WRITTEN on our other local pages. Do NOT reuse these subheadings, openings or angles. Find different questions to answer and a different way in:
+${usedAngles.slice(0, 40).map((a) => `- ${a}`).join("\n")}
+`
+    : "";
   const hasQuestions = questions.length > 0;
   const questionBlock = hasQuestions
     ? `REAL QUESTIONS people search for around this subject, taken from Google's own "people also ask" data. These are the exact words searchers use, so treat them as the brief:
@@ -58,7 +83,9 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join("\n")}
 FACTS (ground everything in these; do not contradict them or invent anything beyond them):
 ${FACTS}
 
+${localBlock}
 ${questionBlock}
+${avoidBlock}
 
 Return ONLY a JSON object with exactly these keys:
 - "metaTitle": under 60 characters, includes ${townName} and the service.
@@ -73,7 +100,11 @@ Return ONLY a JSON object with exactly these keys:
       : `an empty array []. No questions were supplied, so do not write any FAQs.`
   }
 
-Be specific to ${townName} and ${nounLower}, write for people not search engines, and keep every claim honest and grounded in the facts. A reader skimming only the subheadings should still understand what you offer and where.`;
+Be specific to ${townName} and ${nounLower}, write for people not search engines, and keep every claim honest and grounded in the facts. A reader skimming only the subheadings should still understand what you offer and where.
+
+Two rules that matter as much as the rest:
+1. State the home's own details (address, bed count, CQC rating, the areas it serves, the team) ONCE, briefly, and do not recite them again in later sections. Repeating them in every section is what makes one local page read exactly like the next.
+2. This page must be genuinely different from our other local pages, not the same page with a different town name. If you have nothing specific to say about ${townName}, write about the decision the reader is making rather than padding with facts about the home.`;
 
   let out = await generateJson<Record<string, unknown>>(system, user, {
     maxTokens: 9000,

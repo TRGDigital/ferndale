@@ -105,6 +105,9 @@ model AreaPage {
   offerPoints     Json? // string[] — "What we offer" bullets; falls back to the care-type default
   faqs            Json? // [{ question, answer }]
   notes           String? // internal admin notes / reminders, never shown on the site
+  localFacts      String? // what makes THIS town different: drive time, landmark, council,
+  // hospital, parking. Fed to the AI so the page has real local substance rather than the
+  // same copy with the town name swapped. Not rendered directly.
   updatedAt       DateTime @updatedAt
   createdAt       DateTime @default(now())
 }

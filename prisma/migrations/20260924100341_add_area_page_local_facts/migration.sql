@@ -1,0 +1,1 @@
+ALTER TABLE "AreaPage" ADD COLUMN IF NOT EXISTS "localFacts" TEXT;

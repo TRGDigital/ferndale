@@ -10,6 +10,7 @@ import { revalidateTags } from "@/lib/revalidate";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { generateAreaLandingContent } from "@/lib/ai/area-content";
 import { readAlsoAskedCsv, selectQuestions } from "@/lib/alsoasked";
+import { angles } from "@/lib/page-similarity";
 import { townBySlug, careBySlug, titleCaseSlug } from "@/lib/content/local-areas";
 import { createServiceClient, GALLERY_BUCKET, GALLERY_PREFIX } from "@/lib/supabase/admin";
 
@@ -289,6 +290,7 @@ export async function upsertArea(fd: FormData) {
       : Prisma.JsonNull,
     faqs: jsonField(fd, "faqs"),
     notes: optStr(fd, "notes"),
+    localFacts: optStr(fd, "localFacts"),
   };
   // A built-in combo override (managed stays false). Use Reset to revert to the code default.
   await prisma.areaPage.upsert({
@@ -400,6 +402,7 @@ export async function updateAreaPage(fd: FormData) {
         : Prisma.JsonNull,
       faqs: jsonField(fd, "faqs"),
       notes: optStr(fd, "notes"),
+      localFacts: optStr(fd, "localFacts"),
     },
   });
   revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
@@ -458,6 +461,18 @@ export async function generateAreaContent(fd: FormData) {
   const keyword =
     optStr(fd, "targetKeyword") ?? row?.targetKeyword ?? `${careName} in ${townName}`;
 
+  // What the other local pages already say, so this one can be told not to repeat it.
+  // Same service first (the pages most at risk of reading identically), then the rest.
+  const siblings = await prisma.areaPage.findMany({
+    where: { path: { not: path }, OR: [{ body: { not: null } }, { intro: { not: null } }] },
+    select: { path: true, careSlug: true, intro: true, body: true },
+  });
+  const sameService = siblings.filter((r) => r.careSlug && r.careSlug === careSlug);
+  const ordered = [...sameService, ...siblings.filter((r) => !sameService.includes(r))];
+  const usedAngles = ordered
+    .slice(0, 8)
+    .flatMap((r) => angles(`${r.intro ?? ""}${r.body ?? ""}`, 5));
+
   // redirect() must stay OUT of the try/catch (Next throws NEXT_REDIRECT internally).
   // An optional AlsoAsked export. Parsed here, used for this one generation, and
   // never stored: the questions shape the subheadings and become the FAQs.
@@ -480,7 +495,14 @@ export async function generateAreaContent(fd: FormData) {
   let error = csvError;
   try {
     if (error) throw new Error(error);
-    const c = await generateAreaLandingContent({ townName, careName, keyword, questions });
+    const c = await generateAreaLandingContent({
+      townName,
+      careName,
+      keyword,
+      questions,
+      localFacts: row?.localFacts ?? "",
+      usedAngles,
+    });
     const content = {
       targetKeyword: keyword,
       metaTitle: c.metaTitle,
