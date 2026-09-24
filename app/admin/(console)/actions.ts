@@ -410,7 +410,20 @@ export async function setAreaPublished(fd: FormData) {
   await requireAdmin();
   const path = str(fd, "path");
   const published = str(fd, "published") === "true";
-  await prisma.areaPage.update({ where: { path }, data: { published } });
+  // A built-in page may have no row at all (it has simply never been edited), so
+  // unpublishing one has to create the row that records the decision.
+  const m = path.match(/^\/([^/]+)\/([^/]+)\/$/);
+  await prisma.areaPage.upsert({
+    where: { path },
+    update: { published },
+    create: {
+      path,
+      published,
+      managed: false,
+      townSlug: m?.[1] ?? null,
+      careSlug: m?.[2] ?? null,
+    },
+  });
   revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
   redirect(`/admin/?tab=areas&edit=${encodeURIComponent(path)}`);
 }

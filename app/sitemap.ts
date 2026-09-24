@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { getPublishedPosts } from "@/lib/data/blog";
 import { getPublishedSitePages } from "@/lib/data/site-pages";
 import { AREA_PATHS } from "@/lib/content/local-areas";
-import { getManagedAreaPages } from "@/lib/data/area-pages";
+import { getManagedAreaPages, getUnpublishedBuiltInPaths } from "@/lib/data/area-pages";
 import { siteConfig } from "@/lib/site-config";
 
 // Static marketing routes always present (trailing slashes — hard rule #1).
@@ -33,7 +33,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const entries = new Map<string, MetadataRoute.Sitemap[number]>();
 
+  // Built-in area pages are live unless the admin has unpublished one.
+  const hidden = new Set(await getUnpublishedBuiltInPaths().catch(() => []));
   for (const path of [...STATIC_PATHS, ...AREA_PATHS]) {
+    if (hidden.has(path)) continue;
     entries.set(path, { url: `${base}${path}`, lastModified: now });
   }
 
