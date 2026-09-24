@@ -449,6 +449,33 @@ export async function suggestLocalFactsAction(
   }
 }
 
+/**
+ * Save just the local facts, without redirecting. Called as you type and whenever
+ * suggestions are added, because the facts panel sits in its own form: relying on a
+ * Save button meant pressing Generate quietly used an empty column, which is exactly
+ * what happened on the Langley Green pages.
+ */
+export async function saveLocalFactsValue(path: string, value: string) {
+  await requireAdmin();
+  if (!path) return { ok: false as const };
+  const m = path.match(/^\/([^/]+)\/([^/]+)\/$/);
+  const localFacts = value.trim() ? value.trim() : null;
+  await prisma.areaPage.upsert({
+    where: { path },
+    update: { localFacts },
+    create: {
+      path,
+      managed: false,
+      published: true,
+      townSlug: m?.[1] ?? null,
+      careSlug: m?.[2] ?? null,
+      localFacts,
+    },
+  });
+  revalidateTags(["area-pages", `area:${path}`]);
+  return { ok: true as const };
+}
+
 /** Save the AI inputs (keywords, local facts) without generating anything. */
 export async function saveAreaInputs(fd: FormData) {
   await requireAdmin();

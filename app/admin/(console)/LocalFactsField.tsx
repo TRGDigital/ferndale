@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { suggestLocalFactsAction } from "./actions";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { saveLocalFactsValue, suggestLocalFactsAction } from "./actions";
 import type { FactCandidate } from "@/lib/ai/local-facts";
 
 // The local facts box, with a button that asks the AI for candidates.
@@ -34,6 +34,32 @@ export function LocalFactsField({
   const [chosen, setChosen] = useState<Set<number>>(new Set());
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
+  // Saved as you go. The panel sits in its own form, so pressing Generate does not
+  // submit it, and a Save button you have to remember is a Save button that gets
+  // missed. Generation reads the saved column, so it must always be current.
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "failed">("idle");
+  const savedValue = useRef(defaultValue ?? "");
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function persist(value: string) {
+    if (value === savedValue.current) return;
+    setSaveState("saving");
+    saveLocalFactsValue(path, value)
+      .then(() => {
+        savedValue.current = value;
+        setSaveState("saved");
+      })
+      .catch(() => setSaveState("failed"));
+  }
+
+  function scheduleSave(value: string) {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => persist(value), 900);
+  }
+
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current);
+  }, []);
 
   function suggest() {
     setError("");
@@ -50,7 +76,9 @@ export function LocalFactsField({
     const picked = [...chosen].sort((a, b) => a - b).map((i) => facts[i]!.fact);
     if (!picked.length) return;
     const existing = text.trim();
-    setText((existing ? `${existing}\n` : "") + picked.map((f) => `- ${f}`).join("\n"));
+    const next = (existing ? `${existing}\n` : "") + picked.map((f) => `- ${f}`).join("\n");
+    setText(next);
+    persist(next);
     setFacts(facts.filter((_, i) => !chosen.has(i)));
     setChosen(new Set());
   }
@@ -72,6 +100,15 @@ export function LocalFactsField({
         >
           Local facts (what makes this town different)
         </label>
+        <span className="ml-auto mr-2 text-xs text-neutral-500">
+          {saveState === "saving"
+            ? "Saving…"
+            : saveState === "saved"
+              ? "Saved"
+              : saveState === "failed"
+                ? "Not saved, press Save local facts"
+                : ""}
+        </span>
         <button
           type="button"
           onClick={suggest}
@@ -93,7 +130,11 @@ export function LocalFactsField({
         name="localFacts"
         rows={5}
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(e) => {
+          setText(e.target.value);
+          scheduleSave(e.target.value);
+        }}
+        onBlur={(e) => persist(e.target.value)}
         placeholder={"- Nine minutes from here along Ifield Avenue, avoiding the A23\n- West Sussex County Council does the financial assessment\n- Most discharges come from the Princess Royal"}
         className="w-full rounded border border-neutral-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
       />
