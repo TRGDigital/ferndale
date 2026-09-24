@@ -8,6 +8,7 @@
 import { siteConfig } from "@/lib/site-config";
 import { primaryNav } from "@/lib/nav";
 import { tools } from "@/lib/content/tools";
+import { closesAt, employmentTypes, jobPath, parseSalary } from "@/lib/jobs";
 
 export type Faq = { question: string; answer: string };
 
@@ -322,5 +323,91 @@ export function contactPageSchema(path = "/contact-us/") {
     url: pageUrl,
     name: `Contact ${siteConfig.name}`,
     mainEntity: { "@id": ORG_ID },
+  };
+}
+
+type JobPostingLike = {
+  id: string;
+  title: string;
+  type?: string | null;
+  hours?: string | null;
+  salary?: string | null;
+  summary?: string | null;
+  description: string;
+  closingDate?: Date | string | null;
+  createdAt: Date | string;
+};
+
+/** Plain-text job description -> the simple HTML Google renders in Jobs
+ *  (paragraphs + line breaks). Admin text may already contain simple HTML. */
+function jobDescriptionHtml(job: JobPostingLike) {
+  const esc = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const isHtml = /<\/?(p|br|ul|ol|li|strong|em|b|i|h[2-6])\b/i.test(job.description);
+  const body = isHtml
+    ? job.description
+    : job.description
+        .split(/\n\s*\n/)
+        .map((p) => p.trim())
+        .filter(Boolean)
+        .map((p) => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`)
+        .join("");
+  const lead = job.summary ? `<p><strong>${esc(job.summary)}</strong></p>` : "";
+  const hours = job.hours ? `<p>Hours: ${esc(job.hours)}</p>` : "";
+  return `${lead}${body}${hours}`;
+}
+
+/** JobPosting for one vacancy page (/careers/<slug>/). Only emitted while the
+ *  job is published and open. Location is always the home itself (jobs are
+ *  on site), salary only when the admin text parses cleanly. */
+export function jobPostingSchema(job: JobPostingLike) {
+  const url = `${siteConfig.url}${jobPath(job)}`;
+  const types = employmentTypes(job.type);
+  const salary = parseSalary(job.salary);
+  const end = closesAt(job);
+  return {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    "@id": `${url}#job`,
+    url,
+    title: job.title,
+    description: jobDescriptionHtml(job),
+    identifier: {
+      "@type": "PropertyValue",
+      name: siteConfig.name,
+      value: job.id,
+    },
+    datePosted: toISO(job.createdAt),
+    ...(end ? { validThrough: end.toISOString() } : {}),
+    ...(types.length ? { employmentType: types.length === 1 ? types[0] : types } : {}),
+    hiringOrganization: {
+      "@type": "Organization",
+      "@id": ORG_ID,
+      name: siteConfig.name,
+      sameAs: siteConfig.url,
+      logo: `${siteConfig.url}/icon.png`,
+    },
+    jobLocation: {
+      "@type": "Place",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: siteConfig.address.streetAddress,
+        addressLocality: siteConfig.address.addressLocality,
+        addressRegion: siteConfig.address.addressRegion,
+        postalCode: siteConfig.address.postalCode,
+        addressCountry: siteConfig.address.addressCountry,
+      },
+    },
+    ...(salary
+      ? {
+          baseSalary: {
+            "@type": "MonetaryAmount",
+            currency: "GBP",
+            value: { "@type": "QuantitativeValue", ...salary },
+          },
+        }
+      : {}),
+    // The application form is on the job page itself.
+    directApply: true,
   };
 }

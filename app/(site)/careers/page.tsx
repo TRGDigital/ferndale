@@ -14,7 +14,9 @@ import { Icon } from "@/components/site/Icon";
 import { chipAccent, Decor } from "@/components/site/decor";
 import { CareersForm } from "@/components/site/CareersForm";
 import { residentReview } from "@/lib/content/pages";
-import { getPublishedJobs } from "@/lib/data/jobs";
+import Link from "next/link";
+import { getOpenJobs } from "@/lib/data/jobs";
+import { jobPath } from "@/lib/jobs";
 
 function formatClosing(d: Date | string | null) {
   if (!d) return "";
@@ -100,7 +102,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function CareersPage() {
-  const jobs = await getPublishedJobs().catch(() => []);
+  // Roles past their closing date drop off the list (their pages stay up, marked closed).
+  const jobs = await getOpenJobs().catch(() => []);
 
   return (
     <main>
@@ -172,7 +175,9 @@ export default async function CareersPage() {
                 return (
                   <article key={job.id} className={`${CARD} flex flex-col p-7`}>
                     <h3 className="text-xl font-semibold text-brand-700">
-                      {job.title}
+                      <Link href={jobPath(job)} className="hover:underline">
+                        {job.title}
+                      </Link>
                     </h3>
                     {meta.length > 0 ? (
                       <ul className="mt-3 flex flex-wrap gap-2">
@@ -189,17 +194,12 @@ export default async function CareersPage() {
                     {job.summary ? (
                       <p className="mt-4 font-medium text-ink/90">{job.summary}</p>
                     ) : null}
-                    <div className="mt-3 space-y-3 text-sm leading-relaxed text-ink/80">
-                      {job.description
-                        .split(/\n\s*\n/)
-                        .map((para, i) => (
-                          <p key={i} className="whitespace-pre-line">
-                            {para}
-                          </p>
-                        ))}
-                    </div>
-                    <div className="mt-5 flex flex-wrap items-center gap-4 pt-1">
-                      <ButtonLink href="#apply">Apply for this role</ButtonLink>
+                    {/* Teaser only: the full description lives on the job's own page. */}
+                    <p className="mt-3 line-clamp-4 whitespace-pre-line text-sm leading-relaxed text-ink/80">
+                      {job.description.split(/\n\s*\n/)[0]}
+                    </p>
+                    <div className="mt-auto flex flex-wrap items-center gap-4 pt-6">
+                      <ButtonLink href={jobPath(job)}>View role and apply</ButtonLink>
                       {closing ? (
                         <span className="text-xs text-muted">
                           Closing date: {closing}

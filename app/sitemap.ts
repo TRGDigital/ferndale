@@ -4,6 +4,8 @@ import { getPublishedSitePages } from "@/lib/data/site-pages";
 import { AREA_PATHS } from "@/lib/content/local-areas";
 import { getManagedAreaPages, getUnpublishedBuiltInPaths } from "@/lib/data/area-pages";
 import { siteConfig } from "@/lib/site-config";
+import { getOpenJobs } from "@/lib/data/jobs";
+import { jobPath } from "@/lib/jobs";
 
 // Static marketing routes always present (trailing slashes — hard rule #1).
 const STATIC_PATHS = [
@@ -60,6 +62,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${base}${path}`,
       lastModified: p.updatedAt ?? p.publishedAt ?? now,
     });
+  }
+
+  // Open job vacancies (closed roles drop out; their pages are noindex).
+  const jobs = await getOpenJobs().catch(() => []);
+  for (const j of jobs) {
+    const path = jobPath(j);
+    entries.set(path, { url: `${base}${path}`, lastModified: j.updatedAt ?? now });
   }
 
   return [...entries.values()];
