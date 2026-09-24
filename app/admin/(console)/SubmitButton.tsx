@@ -24,6 +24,7 @@ export function SubmitButton({
   variant = "dark",
   className = "",
   confirm,
+  formAction,
 }: {
   children: React.ReactNode;
   /** Shown while the action runs. Defaults to the label plus an ellipsis. */
@@ -32,12 +33,15 @@ export function SubmitButton({
   className?: string;
   /** Ask first. Used for deletes and anything that takes a page off the site. */
   confirm?: string;
+  /** Post this form to a different action, for a second button in one form. */
+  formAction?: (fd: FormData) => void | Promise<void>;
 }) {
   const { pending } = useFormStatus();
 
   return (
     <button
       type="submit"
+      formAction={formAction}
       disabled={pending}
       aria-busy={pending}
       onClick={(e) => {

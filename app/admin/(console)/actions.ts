@@ -24,6 +24,14 @@ function optStr(fd: FormData, key: string): string | null {
   const v = str(fd, key);
   return v === "" ? null : v;
 }
+/**
+ * Only write a column when the form actually carried that field. Without this, a
+ * form that does not include a field (the editor form has no keywords box, because
+ * the keywords live with the AI controls) silently nulls the column on every save.
+ */
+function patchStr(fd: FormData, key: string): Record<string, string | null> {
+  return fd.has(key) ? { [key]: optStr(fd, key) } : {};
+}
 /** Empty -> JSON null (clears the column); otherwise parse (throws if invalid). */
 function jsonField(fd: FormData, key: string) {
   const raw = str(fd, key);
@@ -292,7 +300,7 @@ export async function upsertArea(fd: FormData) {
       : Prisma.JsonNull,
     faqs: jsonField(fd, "faqs"),
     notes: optStr(fd, "notes"),
-    localFacts: optStr(fd, "localFacts"),
+    ...patchStr(fd, "localFacts"),
   };
   // A built-in combo override (managed stays false). Use Reset to revert to the code default.
   await prisma.areaPage.upsert({
@@ -390,7 +398,7 @@ export async function updateAreaPage(fd: FormData) {
     data: {
       careName: optStr(fd, "careName"),
       careNoun: optStr(fd, "careNoun"),
-      targetKeyword: optStr(fd, "targetKeyword"),
+      ...patchStr(fd, "targetKeyword"),
       metaTitle: optStr(fd, "metaTitle"),
       metaDescription: optStr(fd, "metaDescription"),
       heading: optStr(fd, "heading"),
@@ -404,7 +412,7 @@ export async function updateAreaPage(fd: FormData) {
         : Prisma.JsonNull,
       faqs: jsonField(fd, "faqs"),
       notes: optStr(fd, "notes"),
-      localFacts: optStr(fd, "localFacts"),
+      ...patchStr(fd, "localFacts"),
     },
   });
   revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
@@ -439,6 +447,29 @@ export async function suggestLocalFactsAction(
   } catch (e) {
     return { facts: [], error: e instanceof Error ? e.message : "Could not suggest facts." };
   }
+}
+
+/** Save the AI inputs (keywords, local facts) without generating anything. */
+export async function saveAreaInputs(fd: FormData) {
+  await requireAdmin();
+  const path = str(fd, "path");
+  if (!path) redirect("/admin/?tab=areas");
+  const m = path.match(/^\/([^/]+)\/([^/]+)\/$/);
+  const data = { ...patchStr(fd, "targetKeyword"), ...patchStr(fd, "localFacts") };
+  await prisma.areaPage.upsert({
+    where: { path },
+    update: data,
+    create: {
+      path,
+      managed: false,
+      published: true,
+      townSlug: m?.[1] ?? null,
+      careSlug: m?.[2] ?? null,
+      ...data,
+    },
+  });
+  revalidateTags(["area-pages", `area:${path}`, `page:${path}`]);
+  redirect(`/admin/?tab=areas&edit=${encodeURIComponent(path)}`);
 }
 
 /** Publish / unpublish a managed landing page. */
@@ -493,6 +524,12 @@ export async function generateAreaContent(fd: FormData) {
   const keyword =
     optStr(fd, "targetKeyword") ?? row?.targetKeyword ?? `${careName} in ${townName}`;
 
+  // The facts typed into the box on this submit win over whatever was saved, so
+  // pressing Generate uses what is on screen rather than silently ignoring it.
+  const localFacts = fd.has("localFacts")
+    ? (optStr(fd, "localFacts") ?? "")
+    : (row?.localFacts ?? "");
+
   // What the other local pages already say, so this one can be told not to repeat it.
   // Same service first (the pages most at risk of reading identically), then the rest.
   const siblings = await prisma.areaPage.findMany({
@@ -532,11 +569,12 @@ export async function generateAreaContent(fd: FormData) {
       careName,
       keyword,
       questions,
-      localFacts: row?.localFacts ?? "",
+      localFacts,
       usedAngles,
     });
     const content = {
       targetKeyword: keyword,
+      localFacts: localFacts || null,
       metaTitle: c.metaTitle,
       metaDescription: c.metaDescription,
       heading: c.heading,

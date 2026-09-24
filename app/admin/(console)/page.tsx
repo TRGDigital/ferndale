@@ -15,6 +15,7 @@ import {
   upsertArea,
   resetArea,
   createAreaPage,
+  saveAreaInputs,
   updateAreaPage,
   setAreaPublished,
   deleteAreaPage,
@@ -1353,17 +1354,22 @@ function AreaAccordion({
               already on this page are left untouched.
             </span>
           </label>
-          <SubmitButton variant="primary" pendingLabel="Writing the page…">
-            Generate with AI
-          </SubmitButton>
+          <div className="w-full">
+            <LocalFactsField path={path} defaultValue={values.localFacts} />
+          </div>
+          <div className="flex w-full flex-wrap items-center gap-3">
+            <SubmitButton variant="primary" pendingLabel="Writing the page…">
+              Generate with AI
+            </SubmitButton>
+            <SubmitButton variant="link" pendingLabel="Saving…" formAction={saveAreaInputs}>
+              Save these inputs without generating
+            </SubmitButton>
+          </div>
         </form>
 
         {/* Full content editor */}
         <form action={managed ? updateAreaPage : upsertArea} className="space-y-3">
           <input type="hidden" name="path" value={path} />
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3">
-            <LocalFactsField path={path} defaultValue={values.localFacts} />
-          </div>
           <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3">
             <Area
               label="Internal notes (private — only you see these, never shown on the site)"
