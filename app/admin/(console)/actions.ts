@@ -9,6 +9,7 @@ import { sendLeadNotification } from "@/lib/lead-email";
 import { revalidateTags } from "@/lib/revalidate";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { generateAreaLandingContent } from "@/lib/ai/area-content";
+import { readAlsoAskedCsv, selectQuestions } from "@/lib/alsoasked";
 import { townBySlug, careBySlug, titleCaseSlug } from "@/lib/content/local-areas";
 import { createServiceClient, GALLERY_BUCKET, GALLERY_PREFIX } from "@/lib/supabase/admin";
 
@@ -458,9 +459,28 @@ export async function generateAreaContent(fd: FormData) {
     optStr(fd, "targetKeyword") ?? row?.targetKeyword ?? `${careName} in ${townName}`;
 
   // redirect() must stay OUT of the try/catch (Next throws NEXT_REDIRECT internally).
-  let error = "";
+  // An optional AlsoAsked export. Parsed here, used for this one generation, and
+  // never stored: the questions shape the subheadings and become the FAQs.
+  let questions: string[] = [];
+  let csvError = "";
+  const upload = fd.get("questionsCsv");
+  if (upload instanceof File && upload.size > 0) {
+    if (upload.size > 2_000_000) {
+      csvError = "That CSV is over 2MB. Export a smaller one, or split it.";
+    } else {
+      const all = readAlsoAskedCsv(await upload.text());
+      questions = selectQuestions(all, [townName, careName, ...keyword.split(",")]);
+      if (!questions.length) {
+        csvError =
+          "No questions were found in that CSV. It needs a column headed Question, which is what AlsoAsked exports.";
+      }
+    }
+  }
+
+  let error = csvError;
   try {
-    const c = await generateAreaLandingContent({ townName, careName, keyword });
+    if (error) throw new Error(error);
+    const c = await generateAreaLandingContent({ townName, careName, keyword, questions });
     const content = {
       targetKeyword: keyword,
       metaTitle: c.metaTitle,
@@ -469,7 +489,9 @@ export async function generateAreaContent(fd: FormData) {
       intro: c.intro,
       body: c.body,
       offerPoints: c.offerPoints as unknown as Prisma.InputJsonValue,
-      faqs: c.faqs as unknown as Prisma.InputJsonValue,
+      // FAQs are only rewritten when real questions were supplied. Without a CSV the
+      // existing FAQs, which may have been edited by hand, are left exactly as they are.
+      ...(c.faqs.length ? { faqs: c.faqs as unknown as Prisma.InputJsonValue } : {}),
     };
     // update leaves managed/published untouched (managed pages keep their draft state); create makes
     // a built-in override (managed = false, published so it shows immediately).

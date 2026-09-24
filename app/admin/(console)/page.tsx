@@ -1320,6 +1320,22 @@ function AreaAccordion({
               hint="Separate with commas. The first is the main keyword; the others are worked into the H2s and H3s."
             />
           </div>
+          <label className="min-w-[240px] flex-1">
+            <span className="mb-1 block text-sm font-medium text-neutral-700">
+              AlsoAsked questions (optional)
+            </span>
+            <input
+              type="file"
+              name="questionsCsv"
+              accept=".csv,text/csv"
+              className="block w-full cursor-pointer rounded border border-neutral-300 bg-white p-1.5 text-sm file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-neutral-900 file:px-3 file:py-1.5 file:text-xs file:text-white"
+            />
+            <span className="mt-1 block text-xs text-neutral-500">
+              A CSV from AlsoAsked. The real questions become the subheadings and the
+              FAQs. The file is read once and never stored. Leave it empty and the FAQs
+              already on this page are left untouched.
+            </span>
+          </label>
           <SubmitButton variant="primary" pendingLabel="Writing the page…">
             Generate with AI
           </SubmitButton>

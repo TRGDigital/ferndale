@@ -22,8 +22,14 @@ export async function generateAreaLandingContent(opts: {
   careName: string;
   /** One keyword, or several separated by commas. The first is the main one. */
   keyword: string;
+  /**
+   * Real questions from an AlsoAsked export, already filtered to this page. When
+   * present they shape the subheadings and become the FAQs; when absent the FAQs
+   * are left alone entirely, so an upload is never needed to refresh the copy.
+   */
+  questions?: string[];
 }): Promise<GeneratedArea> {
-  const { townName, careName, keyword } = opts;
+  const { townName, careName, keyword, questions = [] } = opts;
   const nounLower = careName.toLowerCase();
 
   // The admin sends a comma separated list. The first is what the page is written
@@ -34,6 +40,12 @@ export async function generateAreaLandingContent(opts: {
     .filter(Boolean);
   const primary = keywords[0] ?? keyword;
   const secondary = keywords.slice(1);
+  const hasQuestions = questions.length > 0;
+  const questionBlock = hasQuestions
+    ? `REAL QUESTIONS people search for around this subject, taken from Google's own "people also ask" data. These are the exact words searchers use, so treat them as the brief:
+${questions.map((q, i) => `${i + 1}. ${q}`).join("\n")}
+`
+    : "";
   const secondaryLine = secondary.length
     ? `Secondary keywords, to be used naturally across the H2 and H3 subheadings and the paragraphs beneath them, one idea per subheading: ${secondary.map((k) => `"${k}"`).join(", ")}.`
     : "There are no secondary keywords, so write subheadings around the questions a family in this area would actually ask.";
@@ -46,14 +58,20 @@ export async function generateAreaLandingContent(opts: {
 FACTS (ground everything in these; do not contradict them or invent anything beyond them):
 ${FACTS}
 
+${questionBlock}
+
 Return ONLY a JSON object with exactly these keys:
 - "metaTitle": under 60 characters, includes ${townName} and the service.
 - "metaDescription": under 155 characters, compelling, includes ${townName}.
 - "heading": the H1, natural and specific.
 - "intro": one or two short HTML paragraphs wrapped in <p></p> for the hero, mentioning ${townName} and that Ferndale is in ${baseTown}.
-- "body": the main written section, as HTML, structured with subheadings rather than as a wall of paragraphs. Use two or three <h2> subheadings, and under at least one of them a pair of <h3> subheadings. Every <h2> and <h3> must read like something a person would say out loud, and between them they should work in the keywords above and the place name naturally, never stuffed and never the same phrase twice. Under every subheading write one or two <p> paragraphs of genuinely useful, reassuring content about choosing ${nounLower} for a loved one near ${townName}, grounded in the facts. No filler, no repetition, and do not use <h1> anywhere, because the page already has one.
+- "body": the main written section, as HTML, structured with subheadings rather than as a wall of paragraphs. Use two or three <h2> subheadings, and under at least one of them a pair of <h3> subheadings. ${hasQuestions ? "Base the subheadings on the real questions above: turn the most relevant ones into headings, keeping the searcher's own wording where it reads naturally, and answer each one in the paragraphs beneath it. " : ""}Every <h2> and <h3> must read like something a person would say out loud, and between them they should work in the keywords above and the place name naturally, never stuffed and never the same phrase twice. Under every subheading write one or two <p> paragraphs of genuinely useful, reassuring content about choosing ${nounLower} for a loved one near ${townName}, grounded in the facts. No filler, no repetition, and do not use <h1> anywhere, because the page already has one.
 - "offerPoints": an array of 4 to 6 short plain-text bullet strings (no HTML) describing what Ferndale offers for this service.
-- "faqs": an array of 3 to 4 objects, each { "question": string, "answer": string }, relevant to ${nounLower} near ${townName}; answers one to three sentences, grounded, with no invented specifics.
+- "faqs": ${
+    hasQuestions
+      ? `an array of 6 to 8 objects, each { "question": string, "answer": string }. Choose the most useful and most relevant questions from the real questions listed above, the ones a family looking for ${nounLower} near ${townName} would actually ask. Keep the searcher's wording where it reads naturally, tidy it only where it reads badly, and do not repeat a question you have already used as a subheading in the body. Answer each in one to three sentences, grounded in the facts, with no invented specifics, and never contradicting anything you have written above.`
+      : `an empty array []. No questions were supplied, so do not write any FAQs.`
+  }
 
 Be specific to ${townName} and ${nounLower}, write for people not search engines, and keep every claim honest and grounded in the facts. A reader skimming only the subheadings should still understand what you offer and where.`;
 
@@ -94,7 +112,7 @@ Be specific to ${townName} and ${nounLower}, write for people not search engines
             typeof (f as { question?: unknown }).question === "string" &&
             typeof (f as { answer?: unknown }).answer === "string",
         )
-        .slice(0, 4)
+        .slice(0, 8)
     : [];
 
   return {
