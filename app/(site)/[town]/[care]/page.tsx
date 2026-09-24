@@ -21,6 +21,7 @@ import {
   baseTown,
 } from "@/lib/content/local-areas";
 import { getAreaPage, getManagedAreaPages } from "@/lib/data/area-pages";
+import { buildAreaLinks } from "@/lib/area-links";
 import { getPublishedPosts } from "@/lib/data/blog";
 import { JsonLd } from "@/components/JsonLd";
 import {
@@ -182,18 +183,12 @@ export default async function AreaLandingPage({ params }: Params) {
     seen.add(key);
     return true;
   });
-  const nearby = all.filter(
-    (p) => p.careSlug === care.slug && p.townSlug !== town.slug,
-  );
   const otherCare =
     all.find((p) => p.townSlug === town.slug && p.careSlug !== care.slug) ?? null;
 
   // The "Areas we cover" link grid: admin-set links win; otherwise auto cross-links to every
   // live page for the same service in another town (so the links never 404).
-  const autoAreaLinks = nearby.map((t) => ({
-    label: `${care.name} in ${t.townName}`,
-    href: `/${t.townSlug}/${t.careSlug}/`,
-  }));
+  const autoAreaLinks = buildAreaLinks(all, town.slug, care.slug);
   const areaLinks =
     row?.areasLinks && row.areasLinks.length ? row.areasLinks : autoAreaLinks;
 

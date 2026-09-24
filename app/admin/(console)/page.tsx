@@ -35,6 +35,7 @@ import {
   saveReviewsUrl,
 } from "./actions";
 import { AreaUpdatedToggle } from "./AreaUpdatedToggle";
+import { buildAreaLinks, areaLinksToText } from "@/lib/area-links";
 import { SubmitButton } from "./SubmitButton";
 import { KeywordsInput } from "./KeywordsInput";
 import { getSetting } from "@/lib/data/settings";
@@ -1481,18 +1482,10 @@ async function AreasTab({
       })),
   ];
   // The stored links as text, or the auto cross-links (same service, other towns) if none set.
-  const areaLinksText = (
-    stored: unknown,
-    townSlug: string,
-    careSlug: string,
-    careName: string,
-  ) => {
+  const areaLinksText = (stored: unknown, townSlug: string, careSlug: string) => {
     const s = linksToText(stored);
     if (s) return s;
-    return livePairs
-      .filter((p) => p.careSlug === careSlug && p.townSlug !== townSlug)
-      .map((p) => `${careName} in ${p.townName} | /${p.townSlug}/${p.careSlug}/`)
-      .join("\n");
+    return areaLinksToText(buildAreaLinks(livePairs, townSlug, careSlug));
   };
 
   const managedItems = rows
@@ -1524,12 +1517,7 @@ async function AreasTab({
               r.townSlug ?? "",
               (r.careNoun ?? r.careName ?? "care").toLowerCase(),
             ),
-          areasLinks: areaLinksText(
-            r.areasLinks,
-            r.townSlug ?? "",
-            r.careSlug ?? "",
-            r.careName ?? "",
-          ),
+          areasLinks: areaLinksText(r.areasLinks, r.townSlug ?? "", r.careSlug ?? ""),
           offerPoints: points.join("\n"),
           faqs: r.faqs ? JSON.stringify(r.faqs, null, 2) : "",
           careName: r.careName ?? "",
@@ -1585,7 +1573,7 @@ async function AreasTab({
           body: r?.body ?? def.body,
           areasHeading: r?.areasHeading ?? "",
           areasBody: r?.areasBody ?? defaultAreasBody(town.name, town.slug, care.noun),
-          areasLinks: areaLinksText(r?.areasLinks, town.slug, care.slug, care.name),
+          areasLinks: areaLinksText(r?.areasLinks, town.slug, care.slug),
           offerPoints: (points ?? []).join("\n"),
           faqs: r?.faqs ? JSON.stringify(r.faqs, null, 2) : "",
           careName: care.name,
