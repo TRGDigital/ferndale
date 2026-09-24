@@ -41,6 +41,7 @@ import { closestPage } from "@/lib/page-similarity";
 import { SubmitButton } from "./SubmitButton";
 import { KeywordsInput } from "./KeywordsInput";
 import { LocalFactsField } from "./LocalFactsField";
+import { CountedField } from "./CountedField";
 import { getSetting } from "@/lib/data/settings";
 import { getAdminSession, envAdminEmails } from "@/lib/auth";
 import { siteImages } from "@/lib/content/site-images";
@@ -151,12 +152,9 @@ function Area({
 function SaveBar({ editing, tab }: { editing: boolean; tab: Tab }) {
   return (
     <div className="flex items-center gap-3 pt-1">
-      <button
-        type="submit"
-        className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
-      >
+      <SubmitButton variant="dark" pendingLabel={editing ? "Saving…" : "Creating…"}>
         {editing ? "Save changes" : "Create"}
-      </button>
+      </SubmitButton>
       {editing ? (
         <Link href={`?tab=${tab}`} className="text-sm underline" prefetch={false}>
           Cancel
@@ -494,7 +492,7 @@ async function HomeTab({ editId }: { editId?: string }) {
                 </Link>
                 <form action={deleteTeamMember}>
                   <input type="hidden" name="id" value={m.id} />
-                  <button className="text-red-600 underline">Remove</button>
+                  <SubmitButton variant="danger" pendingLabel="Removing…" confirm="Remove this? It cannot be undone.">Remove</SubmitButton>
                 </form>
               </span>
             </li>
@@ -548,12 +546,9 @@ async function HomeTab({ editId }: { editId?: string }) {
             </label>
           </div>
           <div className="flex items-center gap-3 pt-1">
-            <button
-              type="submit"
-              className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
-            >
+            <SubmitButton variant="dark">
               {editing ? "Save changes" : "Add member"}
-            </button>
+            </SubmitButton>
             {editing ? (
               <Link href="?tab=home" prefetch={false} className="text-sm underline">
                 Cancel
@@ -613,7 +608,7 @@ async function PostsTab({ editId }: { editId?: string }) {
                 <form action={deletePost}>
                   <input type="hidden" name="id" value={p.id} />
                   <input type="hidden" name="slug" value={p.slug} />
-                  <button className="text-red-600 underline">Delete</button>
+                  <SubmitButton variant="danger" pendingLabel="Deleting…" confirm="Delete this? It cannot be undone.">Delete</SubmitButton>
                 </form>
               </span>
             </li>
@@ -714,7 +709,7 @@ async function AuthorsTab({ editId }: { editId?: string }) {
                 </Link>
                 <form action={deleteAuthor}>
                   <input type="hidden" name="id" value={a.id} />
-                  <button className="text-red-600 underline">Delete</button>
+                  <SubmitButton variant="danger" pendingLabel="Deleting…" confirm="Delete this? It cannot be undone.">Delete</SubmitButton>
                 </form>
               </span>
             </li>
@@ -816,7 +811,7 @@ async function PagesTab({ editId }: { editId?: string }) {
                 {pg.saved ? (
                   <form action={deletePage}>
                     <input type="hidden" name="path" value={pg.path} />
-                    <button className="text-red-600 underline">Reset</button>
+                    <SubmitButton variant="danger" pendingLabel="Resetting…" confirm="Reset this page to its built-in wording? Your edits will be lost.">Reset</SubmitButton>
                   </form>
                 ) : null}
               </span>
@@ -832,8 +827,21 @@ async function PagesTab({ editId }: { editId?: string }) {
         <form action={upsertPage} className="flex flex-col gap-3">
           <Field label="Path (e.g. /about/)" name="path" defaultValue={editing?.path} required />
           <Field label="Title" name="title" defaultValue={editing?.title} required />
-          <Field label="Meta title" name="metaTitle" defaultValue={editing?.metaTitle} />
-          <Field label="Meta description" name="metaDescription" defaultValue={editing?.metaDescription} />
+          <CountedField
+            label="Meta title"
+            name="metaTitle"
+            defaultValue={editing?.metaTitle}
+            limit={60}
+            hint="Shown as the blue link in Google. Past about 60 characters the end is usually cut off."
+          />
+          <CountedField
+            label="Meta description"
+            name="metaDescription"
+            defaultValue={editing?.metaDescription}
+            limit={155}
+            rows={3}
+            hint="The grey text under the link. Google rewrites it sometimes, but a good one earns the click."
+          />
           <Field
             label="Canonical URL"
             name="canonicalUrl"
@@ -923,12 +931,9 @@ async function ImagesTab() {
                     placeholder={img.alt}
                     className="flex-1 rounded border border-neutral-300 px-2 py-1.5 text-sm"
                   />
-                  <button
-                    type="submit"
-                    className="shrink-0 rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
-                  >
+                  <SubmitButton variant="dark" className="shrink-0">
                     Save
-                  </button>
+                  </SubmitButton>
                 </div>
               </form>
             </li>
@@ -973,9 +978,9 @@ async function GalleryTab({ error }: { error?: string }) {
           />
           <Field label="Caption (optional, shown under the photo)" name="caption" />
           <div>
-            <button type="submit" className="rounded bg-brand-700 px-3 py-1.5 text-sm text-white">
+            <SubmitButton variant="primary">
               Upload photo
-            </button>
+            </SubmitButton>
           </div>
         </form>
       </Card>
@@ -1030,19 +1035,16 @@ async function GalleryTab({ error }: { error?: string }) {
                     </label>
                   </div>
                   <div className="pt-1">
-                    <button
-                      type="submit"
-                      className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
-                    >
+                    <SubmitButton variant="dark">
                       Save
-                    </button>
+                    </SubmitButton>
                   </div>
                 </form>
                 <form action={deleteGalleryImage} className="sm:self-start">
                   <input type="hidden" name="id" value={img.id} />
-                  <button type="submit" className="text-sm text-red-600 underline">
+                  <SubmitButton variant="danger" pendingLabel="Working…">
                     Delete
-                  </button>
+                  </SubmitButton>
                 </form>
               </li>
             ))}
@@ -1101,12 +1103,9 @@ async function ReviewsTab({ editId }: { editId?: string }) {
               website name).
             </span>
           </label>
-          <button
-            type="submit"
-            className="self-start rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
-          >
+          <SubmitButton variant="dark">
             Save
-          </button>
+          </SubmitButton>
         </form>
         <a
           href={reviewsUrl}
@@ -1160,9 +1159,9 @@ async function ReviewsTab({ editId }: { editId?: string }) {
             Feature on the homepage carousel
           </label>
           <div className="flex items-center gap-3">
-            <button type="submit" className="rounded bg-brand-700 px-3 py-1.5 text-sm text-white">
+            <SubmitButton variant="primary">
               {editing ? "Save changes" : "Add review"}
-            </button>
+            </SubmitButton>
             {editing ? (
               <Link href="?tab=reviews" className="text-sm underline">
                 Cancel
@@ -1204,7 +1203,7 @@ async function ReviewsTab({ editId }: { editId?: string }) {
                   </Link>
                   <form action={deleteReview}>
                     <input type="hidden" name="id" value={r.id} />
-                    <button className="text-sm text-red-600 underline">Delete</button>
+                    <SubmitButton variant="danger" pendingLabel="Deleting…" confirm="Delete this? It cannot be undone.">Delete</SubmitButton>
                   </form>
                 </span>
               </li>
@@ -1683,12 +1682,9 @@ async function AreasTab({
             />
           </div>
           <div className="sm:col-span-2">
-            <button
-              type="submit"
-              className="rounded bg-brand-700 px-3 py-1.5 text-sm text-white"
-            >
+            <SubmitButton variant="primary">
               Create page (draft)
-            </button>
+            </SubmitButton>
           </div>
         </form>
         <p className="mt-2 text-xs text-neutral-400">
@@ -1782,20 +1778,18 @@ async function LegalTab() {
                 minHeight={420}
               />
               <div className="flex items-center gap-3 pt-1">
-                <button
-                  type="submit"
-                  className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
-                >
+                <SubmitButton variant="dark">
                   Save changes
-                </button>
+                </SubmitButton>
                 {row ? (
-                  <button
-                    type="submit"
+                  <SubmitButton
+                    variant="danger"
                     formAction={resetLegal}
-                    className="text-sm text-red-600 underline"
+                    pendingLabel="Resetting…"
+                    confirm="Reset this page to its original wording? Your edits will be lost."
                   >
                     Reset to default
-                  </button>
+                  </SubmitButton>
                 ) : null}
               </div>
             </form>
@@ -1859,7 +1853,7 @@ async function JobsTab({ editId }: { editId?: string }) {
                 </Link>
                 <form action={deleteJob}>
                   <input type="hidden" name="id" value={j.id} />
-                  <button className="text-red-600 underline">Delete</button>
+                  <SubmitButton variant="danger" pendingLabel="Deleting…" confirm="Delete this? It cannot be undone.">Delete</SubmitButton>
                 </form>
               </span>
             </li>
@@ -2057,15 +2051,15 @@ async function LeadsTab({ sent }: { sent?: string }) {
                       </option>
                     ))}
                   </select>
-                  <button className="text-xs underline">Update</button>
+                  <SubmitButton variant="link" pendingLabel="Updating…" className="text-xs">Update</SubmitButton>
                 </form>
                 <form action={resendLead}>
                   <input type="hidden" name="id" value={l.id} />
-                  <button className="text-xs text-teal-700 underline">Resend email</button>
+                  <SubmitButton variant="link" pendingLabel="Sending…" className="text-xs">Resend email</SubmitButton>
                 </form>
                 <form action={deleteLead}>
                   <input type="hidden" name="id" value={l.id} />
-                  <button className="text-xs text-red-600 underline">Delete</button>
+                  <SubmitButton variant="danger" pendingLabel="Deleting…" className="text-xs" confirm="Delete this? It cannot be undone.">Delete</SubmitButton>
                 </form>
               </div>
             </li>
@@ -2110,7 +2104,7 @@ async function UsersTab({ error }: { error?: string }) {
                 </span>
                 <form action={deleteAdminUser}>
                   <input type="hidden" name="id" value={u.id} />
-                  <button className="text-red-600 underline">Remove</button>
+                  <SubmitButton variant="danger" pendingLabel="Removing…" confirm="Remove this? It cannot be undone.">Remove</SubmitButton>
                 </form>
               </span>
             </li>
@@ -2144,12 +2138,9 @@ async function UsersTab({ error }: { error?: string }) {
               <option value="MASTER">Master — can manage users</option>
             </select>
           </label>
-          <button
-            type="submit"
-            className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white"
-          >
+          <SubmitButton variant="dark">
             Create user
-          </button>
+          </SubmitButton>
         </form>
       </Card>
     </div>
@@ -2206,9 +2197,9 @@ async function SeoTab() {
             </span>
           </label>
           <div>
-            <button type="submit" className="rounded bg-neutral-900 px-3 py-1.5 text-sm text-white">
+            <SubmitButton variant="dark">
               Save social image
-            </button>
+            </SubmitButton>
           </div>
           <p className="text-xs text-neutral-400">
             After saving, re-share the link or use each platform&apos;s debugger (e.g. LinkedIn Post Inspector)
